@@ -5,7 +5,7 @@ $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__ . '/tests');
 
 return (new PhpCsFixer\Config())
-    ->setRiskyAllowed(false)
+    ->setRiskyAllowed(true)
     ->setRules([
         '@PSR12'          => true,
         'strict_param'    => true,
@@ -13,3 +13,4 @@ return (new PhpCsFixer\Config())
         'ordered_imports' => true,
     ])
     ->setFinder($finder);
+
