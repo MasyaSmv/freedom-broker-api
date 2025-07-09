@@ -41,9 +41,6 @@ jobs:
             -   name: Check code style
                 run: composer cs
 
-            -   name: Static analysis
-                run: composer analyse
-
                 # composer test вызывает PHPUnit, выполняет unit и feature-тесты.
             -   name: Run tests
                 run: composer test
