@@ -1,0 +1,40 @@
+{
+	"name": "masyasmv/freedom-broker-api",
+	"description": "Клиент и парсер для работы с API Freedom Broker",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Masya Smv",
+			"email": "kuvaldamax@gmail.com"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"MasyaSmv\\FreedomBrokerApi\\": "src/"
+		}
+	},
+	"require": {
+		"php": "^8.0",
+		"league/csv": "^9.0",
+		"guzzlehttp/guzzle": "^7.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.5",
+		"orchestra/testbench": "^7.0",
+		"phpstan/phpstan": "^1.10",
+		"friendsofphp/php-cs-fixer": "^3.0"
+	},
+	"scripts": {
+		"test": "phpunit --colors=always",
+		"analyse": "phpstan analyse --memory-limit=1G",
+		"cs": "php-cs-fixer fix --dry-run --diff",
+		"cs-fix": "php-cs-fixer fix"
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"branch-alias": {
+			"dev-main": "1.0-dev"
+		}
+	}
+}
