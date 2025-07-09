@@ -36,7 +36,6 @@
     "test":      "phpunit --colors=always",
     "live-test": "FREEDOM_LIVE_TEST=1 phpunit --filter 'FreedomHttpClientTest'",
     "coverage":  "phpunit --coverage-html build/coverage-html --coverage-text",
-    "analyse":   "phpstan analyse --memory-limit=1G",
     "cs":        "php-cs-fixer fix --diff",
     "cs-fix":    "php-cs-fixer fix"
   },
