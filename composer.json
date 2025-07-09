@@ -1,6 +1,6 @@
 {
 	"name": "masyasmv/freedom-broker-api",
-	"description": "Клиент и парсер для работы с API Freedom Broker",
+	"description": "Клиент и парсер для работы с API Freedom Broker (Laravel 8)",
 	"type": "library",
 	"license": "MIT",
 	"authors": [
@@ -9,21 +9,27 @@
 			"email": "kuvaldamax@gmail.com"
 		}
 	],
+	"require": {
+		"php": "^8.0",
+		"ext-json": "*",
+		"ext-mbstring": "*",
+		"league/csv": "^9.0",
+		"guzzlehttp/guzzle": "^7.0",
+		"psr/http-client": "^1.0",
+		"psr/http-message": "^1.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.6",
+		"orchestra/testbench": "^6.30",
+		"mockery/mockery": "^1.5",
+		"phpstan/phpstan": "^1.10",
+		"larastan/larastan": "^2.5",
+		"friendsofphp/php-cs-fixer": "^3.0"
+	},
 	"autoload": {
 		"psr-4": {
 			"MasyaSmv\\FreedomBrokerApi\\": "src/"
 		}
-	},
-	"require": {
-		"php": "^8.0",
-		"league/csv": "^9.0",
-		"guzzlehttp/guzzle": "^7.0"
-	},
-	"require-dev": {
-		"phpunit/phpunit": "^9.5",
-		"orchestra/testbench": "^7.0",
-		"phpstan/phpstan": "^1.10",
-		"friendsofphp/php-cs-fixer": "^3.0"
 	},
 	"scripts": {
 		"test": "phpunit --colors=always",
@@ -31,10 +37,11 @@
 		"cs": "php-cs-fixer fix --dry-run --diff",
 		"cs-fix": "php-cs-fixer fix"
 	},
-	"minimum-stability": "stable",
+	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"extra": {
 		"branch-alias": {
-			"dev-main": "1.0-dev"
+			"dev-main": "1.x-dev"
 		}
 	}
 }
