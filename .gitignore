@@ -32,3 +32,5 @@ auth.json
 /.idea/
 /.vscode/
 /.phpunit.result.cache
+/build/coverage-html/
+
