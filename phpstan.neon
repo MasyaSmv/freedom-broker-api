@@ -1,5 +1,5 @@
-includes:
-  - vendor/orchestra/testbench-core/extension.neon
+#includes:
+#  - vendor/orchestra/testbench-core/extension.neon
 
 parameters:
   level: max
