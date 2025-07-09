@@ -7,19 +7,17 @@ namespace MasyaSmv\FreedomBrokerApi\Core\Http\Signer;
  */
 abstract class AbstractSigner implements SignerInterface
 {
-    /** @var string сервисный ключ API */
-    protected string $secret;
-
-    public function __construct(string $secret)
+    protected function preSign(array $data): string
     {
-        $this->secret = $secret;
-    }
+        ksort($data);
+        $parts = [];
 
-    /**
-     * Freedom API требует компактного JSON без лишних слэшей и юникода.
-     */
-    protected function encode(array $payload): string
-    {
-        return json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        foreach ($data as $k => $v) {
+            $parts[] = is_array($v)
+                ? "$k=" . $this->preSign($v)
+                : "$k=$v";
+        }
+
+        return implode('&', $parts);
     }
 }

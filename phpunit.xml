@@ -19,7 +19,9 @@
             <directory suffix=".php">./src</directory>
         </include>
         <report>
-            <text showUncoveredFiles="true"/>
+            <!-- обязательный атрибут -->
+            <text outputFile="php://stdout"
+                  showUncoveredFiles="true"/>
             <html outputDirectory="./build/coverage-html"/>
         </report>
     </coverage>

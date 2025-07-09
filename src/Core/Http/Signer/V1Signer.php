@@ -7,8 +7,10 @@ namespace MasyaSmv\FreedomBrokerApi\Core\Http\Signer;
  */
 final class V1Signer extends AbstractSigner
 {
+    public function __construct(private string $secret) {}
+
     public function sign(array $payload): string
     {
-        return hash_hmac('sha256', $this->encode($payload), $this->secret);
+        return md5($this->preSign($payload) . $this->secret);
     }
 }

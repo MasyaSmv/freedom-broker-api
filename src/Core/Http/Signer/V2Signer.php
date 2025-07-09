@@ -3,13 +3,14 @@
 namespace MasyaSmv\FreedomBrokerApi\Core\Http\Signer;
 
 /**
- * Подпись версии 2: сначала SHA‑256 от тела, затем HMAC‑SHA512 от хэша.
+ * Подпись версии 2: hash_hmac-SHA256 от строки preSign().
  */
 final class V2Signer extends AbstractSigner
 {
+    public function __construct(private string $secret) {}
+
     public function sign(array $payload): string
     {
-        $hash = hash('sha256', $this->encode($payload));
-        return hash_hmac('sha512', $hash, $this->secret);
+        return hash_hmac('sha256', $this->preSign($payload), $this->secret);
     }
 }

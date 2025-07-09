@@ -8,13 +8,19 @@ class V2SignerTest extends TestCase
     public function test_it_builds_expected_signature(): void
     {
         $secret = 'another-secret';
-        $payload = ['a' => 1];
+        $payload = ['z' => 2, 'a' => 1];
 
         $signer = new V2Signer($secret);
+        $expected = hash_hmac('sha256', 'a=1&z=2', $secret);
 
-        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $hash = hash('sha256', $body);
-        $expected = hash_hmac('sha512', $hash, $secret);
+        $this->assertSame($expected, $signer->sign($payload));
+    }
+
+    public function test_sign_returns_expected_hmac(): void
+    {
+        $signer   = new V2Signer('priv-key');
+        $payload  = ['z' => 2, 'a' => 1];      // ksort → a=1&z=2
+        $expected = hash_hmac('sha256', 'a=1&z=2', 'priv-key');
 
         $this->assertSame($expected, $signer->sign($payload));
     }
