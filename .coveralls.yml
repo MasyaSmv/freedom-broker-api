@@ -1,6 +1,7 @@
 # .coveralls.yml
 service_name: github
-repo_token: ${COVERALLS_REPO_TOKEN}   # берётся из GitHub Secrets
-coverage_clover: coverage.xml             # ваш clover-файл из PHPUnit
-exclude_no_stmt: true                     # опционально, не засчитывать файлы без стейтментов
-entry_point: src                           # для корректных путей (опционально)
+repo_token: ${COVERALLS_REPO_TOKEN}   # ваш секрет из GitHub Actions
+coverage_clover: coverage.xml             # clover-отчёт из phpunit
+json_path: coverage.json            # сюда будет записан промежуточный JSON
+exclude_no_stmt: true                    # не учитывать пустые файлы
+entry_point: src                     # чтобы пути в отчёте резолвились относительно src/
