@@ -42,5 +42,14 @@ jobs:
                 run: composer cs
 
                 # composer test вызывает PHPUnit, выполняет unit и feature-тесты.
-            -   name: Run tests
-                run: composer test
+            - name: Run tests with coverage
+              run: |
+                vendor/bin/phpunit --coverage-clover=coverage.xml
+
+            - name: Send coverage to Coveralls
+              uses: coverallsapp/github-action@v2
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                path-to-lcov: coverage.xml
+                coveralls-endpoint: https://coveralls.io
+                parallel: true
