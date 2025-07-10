@@ -21,7 +21,13 @@ final class ReportServiceTest extends TestCase
         $http = $this->createMock(FreedomHttpClient::class);
         $http->expects($this->once())
             ->method('request')
-            ->with('brokerReport.get', ['from' => '2024-01-01', 'to' => '2024-02-01'], true)
+            ->with('getBrokerReport', [
+                'date_start' => '2024-01-01',
+                'date_end' => '2024-02-01',
+                'time_period' => '23:59:59',
+                'format' => 'json',
+                'type' => 'account_at_end',
+            ], true)
             ->willReturn($raw);
 
         $service = new ReportService($http, new ReportParser());
