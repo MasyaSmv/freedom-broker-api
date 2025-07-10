@@ -1,5 +1,5 @@
 # .coveralls.yml
-service_name: github
+service_name: github-actions
 repo_token: ${COVERALLS_REPO_TOKEN}   # ваш секрет из GitHub Actions
 coverage_clover: coverage.xml             # clover-отчёт из phpunit
 json_path: coverage.json            # сюда будет записан промежуточный JSON
