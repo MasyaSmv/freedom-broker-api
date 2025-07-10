@@ -2,12 +2,12 @@
 
 namespace MasyaSmv\FreedomBrokerApi\Tests\DTO;
 
-use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
-    BalanceDTO,
-    CommissionDTO,
-    OperationDTO,
-    PositionDTO,
-    ReportSummaryDTO};
+use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\BalanceDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\CommissionDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\OperationDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\PositionDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use PHPUnit\Framework\TestCase;
 
 final class DtoConstructorTest extends TestCase
@@ -29,11 +29,22 @@ final class DtoConstructorTest extends TestCase
                 ],
             ],
             // BalanceDTO
-            [BalanceDTO::class, ['currency' => 'EUR', 'amount' => 123.45]],
+            [
+                BalanceDTO::class,
+                [
+                    'currency' => 'EUR',
+                    'amount' => 123.45,
+                ],
+            ],
             // CommissionDTO
             [
                 CommissionDTO::class,
-                ['amount' => 5.55, 'currency' => 'USD', 'date' => '2024-03-03', 'comment' => 'Комиссия'],
+                [
+                    'amount' => 5.55,
+                    'currency' => 'USD',
+                    'date' => '2024-03-03',
+                    'comment' => 'Комиссия',
+                ],
             ],
             // OperationDTO
             [
@@ -52,12 +63,21 @@ final class DtoConstructorTest extends TestCase
             // PositionDTO
             [
                 PositionDTO::class,
-                ['ticker' => 'MSFT', 'quantity' => 3, 'marketValue' => 1200, 'averagePrice' => 400],
+                [
+                    'ticker' => 'MSFT',
+                    'quantity' => 3,
+                    'marketValue' => 1200,
+                    'averagePrice' => 400,
+                ],
             ],
-            // PositionDTO
+            // ReportSummaryDTO
             [
                 ReportSummaryDTO::class,
-                ['securities' => ['SPY' => 100, 'BIL' => 5], 'total' => ['USD' => 10], 'prtotal' => 105],
+                [
+                    'securities' => ['SPY' => 100, 'BIL' => 5],
+                    'total' => ['USD' => 10],
+                    'prtotal' => ['USD' => 105],
+                ],
             ],
         ];
     }
@@ -75,7 +95,7 @@ final class DtoConstructorTest extends TestCase
             self::assertEquals(
                 $expected,
                 $dto->$prop,
-                "$class::$prop не совпал c аргументом конструктора",
+                sprintf('%s::$%s не совпал с аргументом конструктора', $class, $prop),
             );
         }
     }
