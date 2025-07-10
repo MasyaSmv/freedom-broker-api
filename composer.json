@@ -1,6 +1,6 @@
 {
   "name": "masyasmv/freedom-broker-api",
-  "description": "Клиент и парсер для работы с API Freedom Broker (Laravel 8)",
+  "description": "PHP SDK & parser for Freedom24 (TraderNet) Broker API — reports, securities, quotes, orders and history",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -9,6 +9,19 @@
       "email": "kuvaldamax@gmail.com"
     }
   ],
+  "keywords": [
+    "php",
+    "laravel",
+    "freedom24",
+    "broker",
+    "api",
+    "sdk",
+    "dto",
+    "reports",
+    "orders",
+    "securities"
+  ],
+  "homepage": "https://packagist.org/packages/masyasmv/freedom-broker-api",
   "require": {
     "php": "^8.0",
     "ext-json": "*",
@@ -39,11 +52,11 @@
     }
   },
   "scripts": {
-    "test":      "phpunit --colors=always",
+    "test": "phpunit --colors=always",
     "live-test": "FREEDOM_LIVE_TEST=1 phpunit --filter 'FreedomHttpClientTest'",
-    "coverage":  "phpunit --coverage-html build/coverage-html --coverage-text",
-    "cs":        "php-cs-fixer fix --diff",
-    "cs-fix":    "php-cs-fixer fix"
+    "coverage": "phpunit --coverage-html build/coverage-html --coverage-text",
+    "cs": "php-cs-fixer fix --diff",
+    "cs-fix": "php-cs-fixer fix"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
