@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
+use MasyaSmv\FreedomBrokerApi\Core\Service\OrderService;
 use MasyaSmv\FreedomBrokerApi\Core\Service\QuoteInfoService;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\Core\Service\StockHistoryService;
@@ -35,6 +36,8 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         $this->app->bind(StockService::class);
         $this->app->bind(QuoteInfoService::class);
         $this->app->bind(StockHistoryService::class);
+
+        $this->app->bind(OrderService::class, fn ($app) => new OrderService($app->make(FreedomHttpClient::class)));
     }
 
     public function boot(): void
