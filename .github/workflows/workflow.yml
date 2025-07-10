@@ -1,53 +1,55 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      # matrix.php — позволяет протестировать пакет на всех поддерживаемых версиях PHP (8.0–8.3).
-      matrix:
-        php: [ 8.0 ]
-    steps:
-      # actions/checkout@v4 — забирает код из репозитория.
-      - name: Checkout code
-        uses: actions/checkout@v4
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            # matrix.php — позволяет протестировать пакет на всех поддерживаемых версиях PHP (8.0–8.3).
+            matrix:
+                php: [8.0]
+        steps:
+            # actions/checkout@v4 — забирает код из репозитория.
+            -   name: Checkout code
+                uses: actions/checkout@v4
 
-        # shivammathur/setup-php@v2 — настраивает нужную версию PHP и расширения.
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, xml, json
-          ini-values: post_max_size=256M, memory_limit=2G
+                # shivammathur/setup-php@v2 — настраивает нужную версию PHP и расширения.
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php }}
+                    extensions: mbstring, xml, json
+                    ini-values: post_max_size=256M, memory_limit=2G
 
-        # Кеширование зависимостей
-      - name: Cache Composer
-        uses: actions/cache@v3
-        with:
-          path: ~/.composer/cache
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                # Кеширование зависимостей
+            -   name: Cache Composer
+                uses: actions/cache@v3
+                with:
+                    path: ~/.composer/cache
+                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
-        # Установка зависимостей и базовые проверки
-      - name: Install dependencies
-        run: composer install --no-progress --prefer-dist --no-interaction
+                # Установка зависимостей и базовые проверки
+            -   name: Install dependencies
+                run: composer install --no-progress --prefer-dist --no-interaction
 
-        # Код-стайл и статический анализ
-      - name: Check code style
-        run: composer cs
+                # Код-стайл и статический анализ
+            -   name: Check code style
+                run: composer cs
 
-        # composer test вызывает PHPUnit, выполняет unit и feature-тесты.
-      - name: Run tests with coverage
-        run: |
-          vendor/bin/phpunit --coverage-clover=coverage.xml
+                # composer test вызывает PHPUnit, выполняет unit и feature-тесты.
+            - name: Run tests with coverage
+              run: |
+                vendor/bin/phpunit --coverage-clover=coverage.xml
 
-      - name: Send coverage to Coveralls
-        run: vendor/bin/php-coveralls --verbose
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-
+            - name: Send coverage to Coveralls
+              uses: coverallsapp/github-action@v2
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                path-to-lcov: coverage.xml
+                coveralls-endpoint: https://coveralls.io
+                parallel: false
