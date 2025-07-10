@@ -63,6 +63,14 @@
   "extra": {
     "branch-alias": {
       "dev-main": "1.x-dev"
+    },
+    "laravel": {
+      "providers": [
+        "MasyaSmv\\FreedomBrokerApi\\Laravel\\Providers\\FreedomBrokerServiceProvider"
+      ],
+      "aliases": {
+        "Freedom": "MasyaSmv\\FreedomBrokerApi\\Laravel\\Facades\\Freedom"
+      }
     }
   }
 }
