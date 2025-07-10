@@ -40,10 +40,11 @@ final class DtoConstructorTest extends TestCase
             [
                 CommissionDTO::class,
                 [
-                    'amount' => 5.55,
+                    'sum' => 5.55,
                     'currency' => 'USD',
-                    'date' => '2024-03-03',
+                    'type' => 'Type test',
                     'comment' => 'Комиссия',
+                    'dateTime' => '2024-03-03 10:03:17',
                 ],
             ],
             // OperationDTO
