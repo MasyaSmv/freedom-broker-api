@@ -2,7 +2,12 @@
 
 namespace MasyaSmv\FreedomBrokerApi\Tests\DTO;
 
-use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO, BalanceDTO, CommissionDTO, OperationDTO, PositionDTO};
+use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
+    BalanceDTO,
+    CommissionDTO,
+    OperationDTO,
+    PositionDTO,
+    ReportSummaryDTO};
 use PHPUnit\Framework\TestCase;
 
 final class DtoConstructorTest extends TestCase
@@ -48,6 +53,11 @@ final class DtoConstructorTest extends TestCase
             [
                 PositionDTO::class,
                 ['ticker' => 'MSFT', 'quantity' => 3, 'marketValue' => 1200, 'averagePrice' => 400],
+            ],
+            // PositionDTO
+            [
+                ReportSummaryDTO::class,
+                ['securities' => ['SPY' => 100, 'BIL' => 5], 'total' => ['USD' => 10], 'prtotal' => 105],
             ],
         ];
     }
