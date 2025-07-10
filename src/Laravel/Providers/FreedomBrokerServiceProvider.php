@@ -28,7 +28,7 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         $this->app->singleton(FreedomHttpClient::class, function ($app) {
             $pub = config('freedom.public_key');
             $priv = config('freedom.private_key');
-            $ver = config('freedom.version', FreedomHttpClient::V1);
+            $ver = config('freedom.version', FreedomHttpClient::V2);
             $signer = $ver === FreedomHttpClient::V2
                 ? new V2Signer($priv)
                 : new V1Signer($priv);
@@ -54,6 +54,8 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         $this->app->singleton('freedom', function ($app) {
             return new FreedomManager();
         });
+
+        $this->app->alias(FreedomManager::class, 'freedom');
     }
 
     public function boot(): void

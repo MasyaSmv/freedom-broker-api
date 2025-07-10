@@ -9,6 +9,6 @@ class Freedom extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return ReportService::class;
+        return 'freedom';
     }
 }
