@@ -18,6 +18,10 @@
         <include>
             <directory suffix=".php">./src</directory>
         </include>
+         <!-- исключаем Laravel-специфичные обёртки из покрытия -->
+         <exclude>
+             <directory>./src/Laravel</directory>
+         </exclude>
         <report>
             <!-- обязательный атрибут -->
             <text outputFile="php://stdout"

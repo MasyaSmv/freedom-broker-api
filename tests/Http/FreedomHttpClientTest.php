@@ -3,6 +3,7 @@
 namespace MasyaSmv\FreedomBrokerApi\Tests\Http;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
@@ -22,6 +23,9 @@ final class FreedomHttpClientTest extends TestCase
     private const PUBLIC_KEY  = '3771cc1f44163f5399127f563b8342ce';
     private const PRIVATE_KEY = '';   // пустой
 
+    /**
+     * @throws GuzzleException
+     */
     public function test_it_gets_non_empty_response(): void
     {
         if (!\getenv('FREEDOM_LIVE_TEST')) {
@@ -42,7 +46,10 @@ final class FreedomHttpClientTest extends TestCase
         $this->assertNotEmpty($resp);
     }
 
-    /** проверяем setApiUrl() и withSid() одновременно */
+    /** проверяем setApiUrl() и withSid() одновременно
+     *
+     * @throws GuzzleException
+     */
     public function test_with_sid_and_custom_url(): void
     {
         $mock   = new MockHandler([new Response(200, [], '{}')]);
@@ -55,7 +62,7 @@ final class FreedomHttpClientTest extends TestCase
         );
 
         $client->setApiUrl('https://bar/api');
-        $client = $client->withSid('SID123');      // возвращает clone
+        $client = $client->withSid('SID123');
         $client->request('ping');
 
         $req = $mock->getLastRequest();
@@ -79,6 +86,9 @@ final class FreedomHttpClientTest extends TestCase
         $cli->request('ping');
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function test_with_sid_and_set_api_url_are_respected(): void
     {
         $mock = new MockHandler([new Response(200, [], '{"ok":true}')]);
@@ -102,6 +112,9 @@ final class FreedomHttpClientTest extends TestCase
         $this->assertSame('SID42', $json['SID']);
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function test_empty_response_throws_runtime(): void
     {
         $mock = new MockHandler([new Response(200, [], '')]);
@@ -117,6 +130,9 @@ final class FreedomHttpClientTest extends TestCase
         $cli->request('ping');
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function test_request_in_version2_path_covers_all_branches(): void
     {
         // Freedom API отвечает чем-угодно – нам важен сам факт non-empty ответа
