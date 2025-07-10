@@ -31,5 +31,6 @@
     </coverage>
     <php>
         <includePath>tests/helpers</includePath>
+        <env name="FREEDOM_LIVE_TEST" value="1"/>
     </php>
 </phpunit>
