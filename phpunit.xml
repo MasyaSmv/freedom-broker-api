@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="vendor/autoload.php"
+<phpunit bootstrap="tests/bootstrap.php"
          colors="true"
          verbose="true"
          stopOnFailure="false"
@@ -29,4 +29,7 @@
             <html outputDirectory="./build/coverage-html"/>
         </report>
     </coverage>
+    <php>
+        <includePath>tests/helpers</includePath>
+    </php>
 </phpunit>
