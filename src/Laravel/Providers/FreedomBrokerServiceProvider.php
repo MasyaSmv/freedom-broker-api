@@ -12,6 +12,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Service\QuoteInfoService;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\Core\Service\StockHistoryService;
 use MasyaSmv\FreedomBrokerApi\Core\Service\StockService;
+use MasyaSmv\FreedomBrokerApi\Laravel\FreedomManager;
 
 class FreedomBrokerServiceProvider extends ServiceProvider
 {
@@ -38,6 +39,10 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         $this->app->bind(StockHistoryService::class);
 
         $this->app->bind(OrderService::class, fn ($app) => new OrderService($app->make(FreedomHttpClient::class)));
+
+        $this->app->singleton(ReportService::class, function ($app) {
+            return new FreedomManager();
+        });
     }
 
     public function boot(): void

@@ -28,8 +28,14 @@ final class ReportService
     public function load(string $from, string $to): array
     {
         $response = $this->http->request(
-            'brokerReport.get',
-            ['from' => $from, 'to' => $to],
+            'getBrokerReport',
+            [
+                'date_start' => $from,
+                'date_end' => $to,
+                'time_period' => '23:59:59',
+                'format' => 'json',
+                'type' => 'account_at_end',
+            ],
             asArray: true,
         );
 
