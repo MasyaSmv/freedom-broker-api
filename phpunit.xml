@@ -18,10 +18,10 @@
         <include>
             <directory suffix=".php">./src</directory>
         </include>
-         <!-- исключаем Laravel-специфичные обёртки из покрытия -->
-         <exclude>
-             <directory>./src/Laravel</directory>
-         </exclude>
+        <!-- исключаем Laravel-специфичные обёртки из покрытия -->
+        <exclude>
+            <directory>./src/Laravel</directory>
+        </exclude>
         <report>
             <!-- обязательный атрибут -->
             <text outputFile="php://stdout"
@@ -33,4 +33,12 @@
         <includePath>tests/helpers</includePath>
         <env name="FREEDOM_LIVE_TEST" value="1"/>
     </php>
+
+    <logging>
+        <!-- ваш текущий clover -->
+        <log type="coverage-clover" target="coverage.xml"/>
+        <!-- добавляем lcov -->
+        <log type="coverage-php" target="coverage.php"/>
+    </logging>
+
 </phpunit>
