@@ -47,7 +47,7 @@ jobs:
           vendor/bin/phpunit --coverage-clover=coverage.xml
 
       - name: Send coverage to Coveralls
-        run: vendor/bin/php-coveralls --config=coveralls.yml --verbose
+        run: coveralls --config .coveralls.yml --verbose
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 

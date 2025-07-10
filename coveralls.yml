@@ -1,2 +1,6 @@
-source:
-  path_to_clover: coverage.xml
+# .coveralls.yml
+service_name: github
+repo_token: ${COVERALLS_REPO_TOKEN}   # берётся из GitHub Secrets
+coverage_clover: coverage.xml             # ваш clover-файл из PHPUnit
+exclude_no_stmt: true                     # опционально, не засчитывать файлы без стейтментов
+entry_point: src                           # для корректных путей (опционально)
