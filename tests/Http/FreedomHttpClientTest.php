@@ -1,4 +1,5 @@
 <?php
+
 namespace MasyaSmv\FreedomBrokerApi\Tests\Http;
 
 use GuzzleHttp\Client;
@@ -9,6 +10,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 
 /**
@@ -45,7 +47,7 @@ final class FreedomHttpClientTest extends TestCase
     {
         $mock   = new MockHandler([new Response(200, [], '{}')]);
         $client = new FreedomHttpClient(
-            new Client(['handler'=>HandlerStack::create($mock)]),
+            new Client(['handler' => HandlerStack::create($mock)]),
             new V1Signer('s'),
             apiKey  : '',
             version : 1,
@@ -66,7 +68,7 @@ final class FreedomHttpClientTest extends TestCase
     {
         $mock = new MockHandler([new Response(200, [], '')]); // пустое тело
         $cli  = new FreedomHttpClient(
-            new Client(['handler'=>HandlerStack::create($mock)]),
+            new Client(['handler' => HandlerStack::create($mock)]),
             new V1Signer('s'),
             apiKey:'',
             version:1,
@@ -81,8 +83,11 @@ final class FreedomHttpClientTest extends TestCase
     {
         $mock = new MockHandler([new Response(200, [], '{"ok":true}')]);
         $cli  = new FreedomHttpClient(
-            new Client(['handler'=>HandlerStack::create($mock)]),
-            new V1Signer('k'), apiKey:'', version:1, apiUrl:'https://foo/api'
+            new Client(['handler' => HandlerStack::create($mock)]),
+            new V1Signer('k'),
+            apiKey:'',
+            version:1,
+            apiUrl:'https://foo/api'
         );
 
         $cli->setApiUrl('https://bar/api');
@@ -101,8 +106,11 @@ final class FreedomHttpClientTest extends TestCase
     {
         $mock = new MockHandler([new Response(200, [], '')]);
         $cli  = new FreedomHttpClient(
-            new Client(['handler'=>HandlerStack::create($mock)]),
-            new V1Signer('x'), apiKey:'', version:1, apiUrl:'https://z/api'
+            new Client(['handler' => HandlerStack::create($mock)]),
+            new V1Signer('x'),
+            apiKey:'',
+            version:1,
+            apiUrl:'https://z/api'
         );
 
         $this->expectException(RuntimeException::class);
@@ -126,16 +134,16 @@ final class FreedomHttpClientTest extends TestCase
         $params = ['foo' => 'bar'];
         $api->request('auth-login', $params, asArray: true);   // выполняем
 
-        /** @var \Psr\Http\Message\RequestInterface $req */
+        /** @var RequestInterface $req */
         $req   = $mock->getLastRequest();
         $body  = $req->getBody()->getContents();   // form-url-encoded строка
         parse_str($body, $form);
 
         // --- проверки на каждую «красную» ветку ---
         $this->assertSame('auth-login', $form['cmd']);           // базовый cmd
-        $this->assertSame($params,     $form['params']);
-        $this->assertSame('pub',       $form['apiKey']);         // строка 80
-        $this->assertArrayHasKey('nonce',  $form);
+        $this->assertSame($params, $form['params']);
+        $this->assertSame('pub', $form['apiKey']);         // строка 80
+        $this->assertArrayHasKey('nonce', $form);
 
         // заголовок подписи (строка 88)
         $this->assertTrue($req->hasHeader('X-NtApi-Sig'));
