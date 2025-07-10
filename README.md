@@ -1,4 +1,4 @@
-[![Latest Stable Version](https://poser.pugx.org/masyasmv/freedom-broker-api/v/stable)](https://packagist.org/packages/masyasmv/freedom-broker-api)
+[![Packagist Version](https://img.shields.io/packagist/v/masyasmv/freedom-broker-api?style=flat-square)](https://packagist.org/packages/masyasmv/freedom-broker-api)
 [![Total Downloads](https://poser.pugx.org/masyasmv/freedom-broker-api/downloads)](https://packagist.org/packages/masyasmv/freedom-broker-api)
 [![Build Status](https://github.com/MasyaSmv/freedom-broker-api/actions/workflows/workflow.yml/badge.svg)](https://github.com/MasyaSmv/freedom-broker-api/actions)
 [![Coverage Status](https://coveralls.io/repos/github/MasyaSmv/freedom-broker-api/badge.svg?branch=main)](https://coveralls.io/github/MasyaSmv/freedom-broker-api?branch=main)
