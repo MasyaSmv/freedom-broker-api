@@ -33,7 +33,7 @@ class FreedomManager
         ?string $privateKey = null,
         ?string $from = null,
         ?string $to = null,
-        int $version = FreedomHttpClient::V1
+        int $version = FreedomHttpClient::V2
     ): array {
         // 1. Вычисляем даты по умолчанию
         $from = $from ?: (new DateTime('-30 years'))->format('Y-m-d');

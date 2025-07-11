@@ -40,7 +40,6 @@ final class ReportService
                 'date_end' => $to,
                 'time_period' => '23:59:59',
                 'format' => 'json',
-                'type' => 'account_at_end',
             ],
             asArray: true,
         );

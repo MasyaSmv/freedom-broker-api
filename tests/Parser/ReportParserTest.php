@@ -10,6 +10,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\BalanceDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CommissionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\OperationDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PositionDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use PHPUnit\Framework\TestCase;
 
 final class ReportParserTest extends TestCase
@@ -31,6 +32,7 @@ final class ReportParserTest extends TestCase
         $this->assertInstanceOf(Collection::class, $parsed['commissions']);
         $this->assertInstanceOf(Collection::class, $parsed['positions']);
         $this->assertInstanceOf(Collection::class, $parsed['balances']);
+        $this->assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
 
         // Из фикстуры мы знаем, что есть 1 позиция BIL.US
         $this->assertTrue(
@@ -40,7 +42,7 @@ final class ReportParserTest extends TestCase
         // Проверяем валютный баланс USD
         $usd = $parsed['balances']->firstWhere('currency', 'USD');
         $this->assertNotNull($usd);
-        $this->assertEquals(78.1727, $usd->amount);
+        $this->assertEquals(-1816.71, $usd->amount);
     }
 
     /**
@@ -67,12 +69,13 @@ final class ReportParserTest extends TestCase
 
         // 1. Ключи
         self::assertSame(
-            ['plain', 'operations', 'commissions', 'positions', 'balances'],
+            ['plain', 'operations', 'commissions', 'positions', 'balances', 'summary'],
             array_keys($parsed),
         );
 
         // 2. Типы DTO / коллекций
         self::assertInstanceOf(AccountPlainDTO::class, $parsed['plain']);
+        self::assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
         foreach (
             [
                 'operations' => OperationDTO::class,

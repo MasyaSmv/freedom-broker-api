@@ -3,7 +3,12 @@
 namespace MasyaSmv\FreedomBrokerApi\Core\Parser;
 
 use Illuminate\Support\Collection;
-use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO, BalanceDTO, CommissionDTO, OperationDTO, PositionDTO};
+use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
+    BalanceDTO,
+    CommissionDTO,
+    OperationDTO,
+    PositionDTO,
+    ReportSummaryDTO};
 
 /**
  * Разбивает сырой отчёт Freedom на типизированные DTO-коллекции.
@@ -30,42 +35,70 @@ final class ReportParser
         $operations = collect()
             ->merge($r['trades']['detailed'] ?? [])
             ->merge($r['securities_in_outs'] ?? [])
-            ->map(fn ($raw) => new OperationDTO(
+            ->map(fn (array $raw) => new OperationDTO(
                 id: (int)($raw['trade_id'] ?? $raw['id']),
-                type: $raw['type'] ?? ($raw['operation_type'] ?? ''),
-                dateTime: $raw['datetime'] ?? ($raw['transaction_date'] ?? ''),
-                ticker: $raw['ticker'] ?? ($raw['instrument'] ?? ''),
-                quantity: (float)($raw['quantity'] ?? $raw['q'] ?? 0),
-                price: (float)($raw['price'] ?? $raw['p'] ?? 0),
+                type: $raw['operation'] ?? $raw['type'] ?? '',
+                dateTime: $raw['date'] ?? $raw['datetime'] ?? '',
+                ticker: $raw['instr_nm'] ?? $raw['ticker'] ?? '',
+                quantity: (float)($raw['q'] ?? $raw['quantity'] ?? 0),
+                // ↓ извлекаем market_value_details и, если есть ltp, используем его
+                price: (static function (array $r) {
+                    // если пришло строкой, пробуем декодировать
+                    if (!empty($r['market_value_details']) && is_string($r['market_value_details'])) {
+                        $det = json_decode($r['market_value_details'], true);
+                        if (isset($det['ltp']) && json_last_error() === JSON_ERROR_NONE) {
+                            return (float)$det['ltp'];
+                        }
+                    }
+                    // иначе старая логика: p или price
+                    return (float)($r['p'] ?? $r['price'] ?? 0);
+                })(
+                    $raw,
+                ),
                 commission: isset($raw['commission']) ? (float)$raw['commission'] : null,
-                currency: $raw['currency'] ?? $raw['commission_currency'] ?? null,
+                currency: $raw['curr_c'] ?? $raw['currency'] ?? $raw['balance_currency'] ?? null,
+                raw: $raw,
             ));
 
         // 3. Комиссии
         $commissions = collect($r['commissions']['detailed'] ?? [])
             ->map(fn ($c) => new CommissionDTO(
-                amount: (float)($c['sum'] ?? 0),
+                sum: (float)($c['sum'] ?? 0),
                 currency: $c['currency'] ?? $c['commission_currency'] ?? '',
-                date: $c['date'] ?? $c['date_at'] ?? '',
+                type: $c['type'] ?? '',
                 comment: trim($c['comment'] ?? $c['type'] ?? ''),
+                dateTime: $c['date'] ?? $c['date_at'] ?? $c['datetime'] ?? '',
             ));
 
         // 4. Позиции (на конец периода)
         $positions = collect($r['account_at_end']['account']['positions_from_ts']['ps']['pos'] ?? [])
-            ->map(fn ($p) => new PositionDTO(
-                ticker: $p['i'],
-                quantity: (float)$p['q'],
-                marketValue: (float)$p['market_value'],
-                averagePrice: (float)$p['price_a'],
+            ->map(fn (array $p) => new PositionDTO(
+                ticker: $p['i'] ?? '',
+                quantity: (float)($p['q'] ?? 0),
+                // для рыночной стоимости можно брать либо market_value, либо mval
+                marketValue: (float)($p['market_value'] ?? $p['mval'] ?? 0),
+                // средняя цена: price_a или bal_price_a
+                averagePrice: (float)($p['price_a'] ?? $p['bal_price_a'] ?? 0),
+                raw: $p,
             ));
 
         // 5. Балансы денег
         $balances = collect($r['account_at_end']['account']['positions_from_ts']['ps']['acc'] ?? [])
-            ->map(fn ($b) => new BalanceDTO(
-                currency: $b['curr'],
-                amount: (float)($b['currval'] ?? 0),
+            ->map(fn (array $b) => new BalanceDTO(
+                currency: $b['curr'] ?? '',
+                // для суммы баланса мы по-прежнему берём s (или можно взять posval|net_assets)
+                amount: (float)($b['s'] ?? $b['posval'] ?? 0),
+                raw: $b,
             ));
 
-        return compact('plain', 'operations', 'commissions', 'positions', 'balances');
+        // 6. Суммы по разделу trades
+        $summary = new ReportSummaryDTO(
+            securities: $r['trades']['securities'] ?? [],
+            total: array_map('floatval', $r['trades']['total'] ?? []),
+            prtotal: array_map('floatval', $r['trades']['prtotal'] ?? []),
+            raw: $r['trades'] ?? [],
+        );
+
+        return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary');
     }
 }

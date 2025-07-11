@@ -26,7 +26,6 @@ final class ReportServiceTest extends TestCase
                 'date_end' => '2024-02-01',
                 'time_period' => '23:59:59',
                 'format' => 'json',
-                'type' => 'account_at_end',
             ], true)
             ->willReturn($raw);
 
