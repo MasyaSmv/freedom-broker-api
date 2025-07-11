@@ -25,7 +25,13 @@ class FreedomManager
      * @param string|null $to конец периода в 'Y-m-d', по умолчанию сегодня
      * @param int $version версия API (V1|V2)
      *
-     * @return array{plain:AccountPlainDTO, operations:Collection, positions:Collection, balances:Collection, summary:ReportSummaryDTO}
+     * @return array{
+     *     plain:AccountPlainDTO,
+     *     operations:Collection,
+     *     positions:Collection,
+     *     balances:Collection,
+     *     summary:ReportSummaryDTO
+     * }
      * @throws GuzzleException
      */
     public function load(
