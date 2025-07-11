@@ -11,6 +11,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
+use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 
 class FreedomManager
 {
@@ -23,7 +25,13 @@ class FreedomManager
      * @param string|null $to конец периода в 'Y-m-d', по умолчанию сегодня
      * @param int $version версия API (V1|V2)
      *
-     * @return array{plain:object, operations:Collection, positions:Collection, balances:Collection}
+     * @return array{
+     *     plain:AccountPlainDTO,
+     *     operations:Collection,
+     *     positions:Collection,
+     *     balances:Collection,
+     *     summary:ReportSummaryDTO
+     * }
      * @throws GuzzleException
      */
     public function load(

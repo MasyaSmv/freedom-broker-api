@@ -54,6 +54,7 @@
   "scripts": {
     "test": "phpunit --colors=always",
     "live-test": "FREEDOM_LIVE_TEST=1 phpunit --filter 'FreedomHttpClientTest'",
+    "test-parser": "phpunit --filter 'ReportParserTest'",
     "coverage": "phpunit --coverage-html build/coverage-html --coverage-text",
     "cs": "php-cs-fixer fix --diff",
     "cs-fix": "php-cs-fixer fix"

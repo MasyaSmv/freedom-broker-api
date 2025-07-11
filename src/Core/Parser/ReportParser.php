@@ -15,7 +15,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
  */
 final class ReportParser
 {
-    /** @return array{plain:AccountPlainDTO,operations:Collection,commissions:Collection,positions:Collection,balances:Collection} */
+    /** @return array{plain:AccountPlainDTO,operations:Collection,commissions:Collection,positions:Collection,balances:Collection,summary:ReportSummaryDTO} */
     public function parse(array $report): array
     {
         $r = $report['report'] ?? [];

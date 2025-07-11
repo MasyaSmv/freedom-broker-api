@@ -15,5 +15,20 @@ final class BalanceDTO
         public array $raw = []
     ) {
     }
+
+    /**
+     * Конвертирует свойство raw (массив) в финальный массив для БД:
+     * 1) Парсит и форматирует dateKeys
+     * 2) Сливает дефолтные значения и raw, давая приоритет raw
+     *
+     * @param array<string,mixed> $defaults Начальные значения
+     *
+     * @return array<string,mixed>
+     */
+    public function toDbArray(array $defaults = []): array
+    {
+        $processed = $this->raw;
+        return array_merge($defaults, $processed);
+    }
 }
 

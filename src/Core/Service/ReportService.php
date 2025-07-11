@@ -1,12 +1,12 @@
 <?php
 
-// src/Core/Service/ReportService.php
-
 namespace MasyaSmv\FreedomBrokerApi\Core\Service;
 
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Collection;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
+use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
 
 final class ReportService
 {
@@ -22,7 +22,13 @@ final class ReportService
     }
 
     /**
-     * @return array см. ReportParser::parse()
+     * @return array{
+     *     plain:AccountPlainDTO,
+     *     operations:Collection,
+     *     positions:Collection,
+     *     balances:Collection,
+     *     summary:ReportSummaryDTO
+     * }
      * @throws GuzzleException
      */
     public function load(string $from, string $to): array
