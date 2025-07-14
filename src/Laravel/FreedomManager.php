@@ -35,8 +35,8 @@ class FreedomManager
      * @throws GuzzleException
      */
     public function load(
-        ?string $publicKey = null,
-        ?string $privateKey = null,
+        ?string $publicKey,
+        ?string $privateKey,
         ?string $from = null,
         ?string $to = null,
         int $version = FreedomHttpClient::V2
