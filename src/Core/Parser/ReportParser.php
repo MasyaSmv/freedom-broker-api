@@ -83,10 +83,10 @@ final class ReportParser
             ));
 
         // 5. Балансы денег
-        $balances = collect($r['cash_flows_json'] ?? [])
+        $balances = collect($r['account_at_end']['account']['positions_from_ts']['ps']['acc'] ?? [])
             ->map(fn (array $b) => new BalanceDTO(
                 currency: $b['curr'] ?? '',
-                amount: (float)($b['curr_at_end'] ?? $b['curr_flowed'] ?? 0),
+                amount: (float)($b['s'] ?? $b['posval'] ?? 0),
                 raw: $b,
             ));
 
