@@ -111,10 +111,18 @@ final class ReportParser
 
         // 7. Период отчёта
         $period = new ReportPeriodDTO(
-            Carbon::parse($r['date_start'])->setTimeFromTimeString(now()->toTimeString()),
-            Carbon::parse($r['date_end'])->setTimeFromTimeString(now()->toTimeString()),
+            self::safeParse($r['date_start'] ?? null),
+            self::safeParse($r['date_end']   ?? null),
         );
 
         return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary', 'period');
+    }
+
+    private static function safeParse(?string $raw): Carbon
+    {
+        return $raw
+            ? Carbon::parse($raw)
+                ->setTimeFromTimeString(now()->toTimeString())
+            : now();
     }
 }
