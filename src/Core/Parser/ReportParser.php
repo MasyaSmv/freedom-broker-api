@@ -2,12 +2,14 @@
 
 namespace MasyaSmv\FreedomBrokerApi\Core\Parser;
 
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
     BalanceDTO,
     CommissionDTO,
     OperationDTO,
     PositionDTO,
+    ReportPeriodDTO,
     ReportSummaryDTO};
 
 /**
@@ -15,7 +17,16 @@ use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
  */
 final class ReportParser
 {
-    /** @return array{plain:AccountPlainDTO,operations:Collection,commissions:Collection,positions:Collection,balances:Collection,summary:ReportSummaryDTO} */
+    /** @return array{
+     *     plain:AccountPlainDTO,
+     *     operations:Collection,
+     *     commissions:Collection,
+     *     positions:Collection,
+     *     balances:Collection,
+     *     summary:ReportSummaryDTO,
+     *     period:ReportPeriodDTO
+     * }
+     */
     public function parse(array $report): array
     {
         $r = $report['report'] ?? [];
@@ -98,6 +109,12 @@ final class ReportParser
             raw: $r['trades'] ?? [],
         );
 
-        return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary');
+        // 7. Период отчёта
+        $period = new ReportPeriodDTO(
+            Carbon::parse($r['date_start'])->setTimeFromTimeString(now()->toTimeString()),
+            Carbon::parse($r['date_end'])->setTimeFromTimeString(now()->toTimeString()),
+        );
+
+        return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary', 'period');
     }
 }
