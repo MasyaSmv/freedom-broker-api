@@ -23,5 +23,7 @@
 
 
 ## [Unreleased]
+### Fixed
+- Исправлен тест `ReportPeriodDTO`. Без приставки test не учитывался в тестировании
 -
 
