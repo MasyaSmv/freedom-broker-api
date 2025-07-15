@@ -13,6 +13,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 
 class FreedomManager implements FreedomManagerInterface
@@ -31,7 +32,8 @@ class FreedomManager implements FreedomManagerInterface
      *     operations:Collection,
      *     positions:Collection,
      *     balances:Collection,
-     *     summary:ReportSummaryDTO
+     *     summary:ReportSummaryDTO,
+     *     period:ReportPeriodDTO
      * }
      * @throws GuzzleException
      */

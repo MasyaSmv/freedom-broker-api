@@ -6,10 +6,23 @@ use Carbon\Carbon;
 
 final class ReportPeriodDTO
 {
-    public function __construct(
-        public Carbon $start,
-        public Carbon $end,
-    ) {
+    private Carbon $start;
+    private Carbon $end;
+
+    public function __construct(Carbon $start, Carbon $end)
+    {
+        $this->start = $start;
+        $this->end = $end;
+    }
+
+    public function start(): Carbon
+    {
+        return $this->start;
+    }
+
+    public function end(): Carbon
+    {
+        return $this->end;
     }
 
     public function contains(Carbon $date): bool

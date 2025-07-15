@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 
 final class ReportService
@@ -28,7 +29,8 @@ final class ReportService
      *     operations:Collection,
      *     positions:Collection,
      *     balances:Collection,
-     *     summary:ReportSummaryDTO
+     *     summary:ReportSummaryDTO,
+     *     period:ReportPeriodDTO
      * }
      * @throws GuzzleException
      */
