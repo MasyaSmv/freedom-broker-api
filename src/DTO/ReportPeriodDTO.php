@@ -6,10 +6,10 @@ use Carbon\Carbon;
 
 final class ReportPeriodDTO
 {
-    private Carbon $start;
-    private Carbon $end;
+    private ?Carbon $start;
+    private ?Carbon $end;
 
-    public function __construct(Carbon $start, Carbon $end)
+    public function __construct(?Carbon $start = null, ?Carbon $end = null)
     {
         $this->start = $start;
         $this->end = $end;

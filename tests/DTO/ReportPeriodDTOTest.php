@@ -25,7 +25,15 @@ final class ReportPeriodDTOTest extends TestCase
         $this->dto = new ReportPeriodDTO($this->start, $this->end);
     }
 
-    /** @test */
+    public function dto_exposes_start_and_end_as_readonly(): void
+    {
+        $this->assertSame($this->start, $this->dto->start());
+        $this->assertSame($this->end, $this->dto->end());
+
+        $this->expectException(Error::class);
+        $this->dto->start = Carbon::now();
+    }
+
     public function contains_returns_true_for_dates_inside_or_on_bounds(): void
     {
         // левая граница включена
@@ -39,7 +47,6 @@ final class ReportPeriodDTOTest extends TestCase
         $this->assertTrue($this->dto->contains($mid));
     }
 
-    /** @test */
     public function contains_returns_false_for_dates_outside_bounds(): void
     {
         $before = $this->start->copy()->subSecond();

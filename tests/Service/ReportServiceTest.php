@@ -16,7 +16,7 @@ final class ReportServiceTest extends TestCase
      */
     public function test_load_fetches_and_parses_report(): void
     {
-        $raw = ['report' => 'stub'];
+        $raw = ['report' => ['plainAccountInfoData' => []]];
         /** @var FreedomHttpClient&MockObject $http */
         $http = $this->createMock(FreedomHttpClient::class);
         $http->expects($this->once())
