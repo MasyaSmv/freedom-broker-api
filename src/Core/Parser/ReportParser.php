@@ -2,12 +2,14 @@
 
 namespace MasyaSmv\FreedomBrokerApi\Core\Parser;
 
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
     BalanceDTO,
     CommissionDTO,
     OperationDTO,
     PositionDTO,
+    ReportPeriodDTO,
     ReportSummaryDTO};
 
 /**
@@ -15,7 +17,16 @@ use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
  */
 final class ReportParser
 {
-    /** @return array{plain:AccountPlainDTO,operations:Collection,commissions:Collection,positions:Collection,balances:Collection,summary:ReportSummaryDTO} */
+    /** @return array{
+     *     plain:AccountPlainDTO,
+     *     operations:Collection,
+     *     commissions:Collection,
+     *     positions:Collection,
+     *     balances:Collection,
+     *     summary:ReportSummaryDTO,
+     *     period:ReportPeriodDTO
+     * }
+     */
     public function parse(array $report): array
     {
         $r = $report['report'] ?? [];
@@ -86,7 +97,6 @@ final class ReportParser
         $balances = collect($r['account_at_end']['account']['positions_from_ts']['ps']['acc'] ?? [])
             ->map(fn (array $b) => new BalanceDTO(
                 currency: $b['curr'] ?? '',
-                // для суммы баланса мы по-прежнему берём s (или можно взять posval|net_assets)
                 amount: (float)($b['s'] ?? $b['posval'] ?? 0),
                 raw: $b,
             ));
@@ -99,6 +109,20 @@ final class ReportParser
             raw: $r['trades'] ?? [],
         );
 
-        return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary');
+        // 7. Период отчёта
+        $period = new ReportPeriodDTO(
+            self::safeParse($r['date_start'] ?? null),
+            self::safeParse($r['date_end']   ?? null),
+        );
+
+        return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary', 'period');
+    }
+
+    private static function safeParse(?string $raw): Carbon
+    {
+        return $raw
+            ? Carbon::parse($raw)
+                ->setTimeFromTimeString(now()->toTimeString())
+            : now();
     }
 }

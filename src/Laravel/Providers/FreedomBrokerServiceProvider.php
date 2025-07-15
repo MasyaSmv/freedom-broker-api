@@ -5,6 +5,7 @@ namespace MasyaSmv\FreedomBrokerApi\Laravel\Providers;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\ServiceProvider;
+use MasyaSmv\FreedomBrokerApi\Contracts\FreedomManagerInterface;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
@@ -56,6 +57,8 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         });
 
         $this->app->alias(FreedomManager::class, 'freedom');
+        $this->app->bind(FreedomManagerInterface::class, FreedomManager::class);
+
     }
 
     public function boot(): void

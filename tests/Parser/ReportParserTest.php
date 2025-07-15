@@ -10,6 +10,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\BalanceDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CommissionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\OperationDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PositionDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +21,7 @@ final class ReportParserTest extends TestCase
      */
     public function test_it_splits_single_report_into_collections(): void
     {
-        $json = self::loadSample();
+        $json = $this->loadSample();
 
         $parsed = (new ReportParser())->parse($json);
 
@@ -34,6 +35,7 @@ final class ReportParserTest extends TestCase
         $this->assertInstanceOf(Collection::class, $parsed['balances']);
         $this->assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
         $this->assertInstanceOf(AccountPlainDTO::class, $parsed['plain']);
+        $this->assertInstanceOf(ReportPeriodDTO::class, $parsed['period']);
 
         // Из фикстуры мы знаем, что есть 1 позиция BIL.US
         $this->assertTrue(
@@ -66,7 +68,7 @@ final class ReportParserTest extends TestCase
     public function test_parse_large_fixture_matches_raw_counts_and_values(): void
     {
         // 1. грузим большую фикстуру
-        $raw = self::loadSample();
+        $raw = $this->loadSample();
         $expected = $raw['report'];
 
         // 2. парсим
@@ -95,11 +97,12 @@ final class ReportParserTest extends TestCase
         foreach ($map as $key => $dtoClass) {
             /** @var Collection $col */
             $col = $parsed[$key];
-            $col->each(fn ($item) => self::assertInstanceOf($dtoClass, $item));
+            $col->each(fn ($item) => $this->assertInstanceOf($dtoClass, $item));
         }
 
-        self::assertInstanceOf(AccountPlainDTO::class, $parsed['plain']);
-        self::assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
+        $this->assertInstanceOf(AccountPlainDTO::class, $parsed['plain']);
+        $this->assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
+        $this->assertInstanceOf(ReportPeriodDTO::class, $parsed['period']);
 
         /** ---------- точные числовые значения ---------- */
 
@@ -130,18 +133,19 @@ final class ReportParserTest extends TestCase
      */
     public function test_parse_splits_raw_report_into_typed_collections(): void
     {
-        $raw = self::loadSample();
+        $raw = $this->loadSample();
         $parsed = (new ReportParser())->parse($raw);
 
         // 1. Ключи
-        self::assertSame(
-            ['plain', 'operations', 'commissions', 'positions', 'balances', 'summary'],
+        $this->assertSame(
+            ['plain', 'operations', 'commissions', 'positions', 'balances', 'summary', 'period'],
             array_keys($parsed),
         );
 
         // 2. Типы DTO / коллекций
-        self::assertInstanceOf(AccountPlainDTO::class, $parsed['plain']);
-        self::assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
+        $this->assertInstanceOf(AccountPlainDTO::class, $parsed['plain']);
+        $this->assertInstanceOf(ReportSummaryDTO::class, $parsed['summary']);
+        $this->assertInstanceOf(ReportPeriodDTO::class, $parsed['period']);
 
         $dtoCollections = [
             'operations' => OperationDTO::class,
@@ -153,9 +157,9 @@ final class ReportParserTest extends TestCase
         foreach ($dtoCollections as $key => $dto) {
             /** @var Collection $col */
             $col = $parsed[$key];
-            self::assertInstanceOf(Collection::class, $col);
-            self::assertGreaterThanOrEqual(0, $col->count(), "$key пуст");
-            $col->each(fn ($item) => self::assertInstanceOf($dto, $item));
+            $this->assertInstanceOf(Collection::class, $col);
+            $this->assertGreaterThanOrEqual(0, $col->count(), "$key пуст");
+            $col->each(fn ($item) => $this->assertInstanceOf($dto, $item));
         }
     }
 }

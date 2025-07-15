@@ -6,15 +6,17 @@ use DateTime;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use MasyaSmv\FreedomBrokerApi\Contracts\FreedomManagerInterface;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 
-class FreedomManager
+class FreedomManager implements FreedomManagerInterface
 {
     /**
      * Загружает отчёт брокера за указанный период.
@@ -30,13 +32,14 @@ class FreedomManager
      *     operations:Collection,
      *     positions:Collection,
      *     balances:Collection,
-     *     summary:ReportSummaryDTO
+     *     summary:ReportSummaryDTO,
+     *     period:ReportPeriodDTO
      * }
      * @throws GuzzleException
      */
     public function load(
-        ?string $publicKey = null,
-        ?string $privateKey = null,
+        ?string $publicKey,
+        ?string $privateKey,
         ?string $from = null,
         ?string $to = null,
         int $version = FreedomHttpClient::V2
