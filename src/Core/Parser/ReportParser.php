@@ -8,6 +8,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
     BalanceDTO,
     CommissionDTO,
     OperationDTO,
+    PaymentDTO,
     PositionDTO,
     ReportPeriodDTO,
     ReportSummaryDTO};
@@ -21,6 +22,7 @@ final class ReportParser
      *     plain:AccountPlainDTO,
      *     operations:Collection,
      *     commissions:Collection,
+     *     payments:Collection,
      *     positions:Collection,
      *     balances:Collection,
      *     summary:ReportSummaryDTO,
@@ -81,7 +83,20 @@ final class ReportParser
                 dateTime: $c['date'] ?? $c['date_at'] ?? $c['datetime'] ?? '',
             ));
 
-        // 4. Позиции (на конец периода)
+        // 4. Комиссии
+        $payments = collect($r['corporate_actions']['detailed'] ?? [])
+            ->map(fn ($p) => new PaymentDTO(
+                corporateActionId: $p['corporate_action_id'] ?? '',
+                type: $p['type_id'] ?? '',
+                dateTime: Carbon::parse($p['date'] ?? now()),
+                ticker: trim($p['ticker'] ?? ''),
+                amount: (float)($p['amount'] ?? 0),
+                currency: $p['currency'] ?? '',
+                comment: trim($p['comment'] ?? ''),
+                raw: $p,
+            ));
+
+        // 5. Позиции (на конец периода)
         $positions = collect($r['account_at_end']['account']['positions_from_ts']['ps']['pos'] ?? [])
             ->map(fn (array $p) => new PositionDTO(
                 ticker: $p['i'] ?? '',
@@ -93,7 +108,7 @@ final class ReportParser
                 raw: $p,
             ));
 
-        // 5. Балансы денег
+        // 6. Балансы денег
         $balances = collect($r['account_at_end']['account']['positions_from_ts']['ps']['acc'] ?? [])
             ->map(fn (array $b) => new BalanceDTO(
                 currency: $b['curr'] ?? '',
@@ -101,7 +116,7 @@ final class ReportParser
                 raw: $b,
             ));
 
-        // 6. Суммы по разделу trades
+        // 7. Суммы по разделу trades
         $summary = new ReportSummaryDTO(
             securities: $r['trades']['securities'] ?? [],
             total: array_map('floatval', $r['trades']['total'] ?? []),
@@ -109,13 +124,13 @@ final class ReportParser
             raw: $r['trades'] ?? [],
         );
 
-        // 7. Период отчёта
+        // 8. Период отчёта
         $period = new ReportPeriodDTO(
             self::safeParse($r['date_start'] ?? null),
-            self::safeParse($r['date_end']   ?? null),
+            self::safeParse($r['date_end'] ?? null),
         );
 
-        return compact('plain', 'operations', 'commissions', 'positions', 'balances', 'summary', 'period');
+        return compact('plain', 'operations', 'commissions', 'payments', 'positions', 'balances', 'summary', 'period');
     }
 
     private static function safeParse(?string $raw): Carbon
