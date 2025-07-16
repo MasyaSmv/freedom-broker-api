@@ -18,48 +18,51 @@ final class ReportPeriodDTOTest extends TestCase
     {
         parent::setUp();
 
-        // 05.05.2025 00:00:00 — 06.05.2025 23:59:59 (2 календарных дня)
+        // 5 мая 2025 г. 00:00:00 — 6 мая 2025 г. 23:59:59
         $this->start = Carbon::create(2025, 5, 5, 0, 0, 0);
         $this->end   = Carbon::create(2025, 5, 6, 23, 59, 59);
 
         $this->dto = new ReportPeriodDTO($this->start, $this->end);
     }
 
-    public function dto_exposes_start_and_end_as_readonly(): void
+    public function test_getters_return_exact_same_instances(): void
     {
+        // Оба геттера возвращают ровно те же объекты Carbon
         $this->assertSame($this->start, $this->dto->start());
-        $this->assertSame($this->end, $this->dto->end());
+        $this->assertSame($this->end,   $this->dto->end());
+    }
 
-        $this->expectException(Error::class);
+    public function test_dto_is_immutable(): void
+    {
+        // DTO иммутабелен — попытка присвоить свойство вызывает Error
+        $this->expectException(\Error::class);
+        // магический __set() бросит исключение
         $this->dto->start = Carbon::now();
     }
 
-    public function contains_returns_true_for_dates_inside_or_on_bounds(): void
+    public function test_contains_works_for_inside_and_outside_dates(): void
     {
-        // левая граница включена
+        // Метод contains() корректно определяет попадание даты в диапазон
+        // внутри периода
+        $middle = $this->start->copy()->addDay()->setHour(12);
+        $this->assertTrue($this->dto->contains($middle));
+
+        // ровно на левой границе
         $this->assertTrue($this->dto->contains($this->start));
 
-        // правая граница включена
+        // ровно на правой границе
         $this->assertTrue($this->dto->contains($this->end));
 
-        // дата между стартом и окончанием
-        $mid = $this->start->copy()->addDay()->setHour(12);
-        $this->assertTrue($this->dto->contains($mid));
-    }
-
-    public function contains_returns_false_for_dates_outside_bounds(): void
-    {
+        // вне периода
         $before = $this->start->copy()->subSecond();
         $after  = $this->end->copy()->addSecond();
-
         $this->assertFalse($this->dto->contains($before));
         $this->assertFalse($this->dto->contains($after));
     }
 
-    /** @test */
-    public function length_in_days_is_calculated_inclusively(): void
+    public function test_length_in_days_is_inclusive(): void
     {
-        // 5 мая + 6 мая = 2 календарных дня
+        // Период включает обе границы (5-е и 6-е мая) — итого 2 дня
         $this->assertSame(2, $this->dto->lengthInDays());
     }
 }

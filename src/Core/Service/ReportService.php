@@ -27,6 +27,8 @@ final class ReportService
      * @return array{
      *     plain:AccountPlainDTO,
      *     operations:Collection,
+     *     commissions:Collection,
+     *     payments:Collection,
      *     positions:Collection,
      *     balances:Collection,
      *     summary:ReportSummaryDTO,
