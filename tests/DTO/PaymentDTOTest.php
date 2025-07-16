@@ -8,17 +8,19 @@ use PHPUnit\Framework\TestCase;
 
 final class PaymentDTOTest extends TestCase
 {
-    /** @test */
-    public function to_db_array_merges_and_casts_date(): void
+    public function test_to_db_array_casts_dash_and_empty_to_zero(): void
     {
         $raw = [
             'date' => '2025-06-06',
-            'type_id' => 'dividend',
+            'type_id' => 'dividend_compensation',
             'corporate_action_id' => '123',
-            'amount' => 10.5,
-            'ticker' => 'IEF.US',
+            'amount' => '-',
+            'amount_per_one' => '',
+            'external_tax' => 0.25,          // остаётся числом
+            'tax_amount' => '-',
+            'ticker' => 'TLT.US',
             'currency' => 'USD',
-            'comment' => 'Dividends',
+            'comment' => 'Compensation',
         ];
 
         $dto = new PaymentDTO(
@@ -26,20 +28,18 @@ final class PaymentDTOTest extends TestCase
             type: $raw['type_id'],
             dateTime: $raw['date'],
             ticker: $raw['ticker'],
-            amount: (float)$raw['amount'],
+            amount: 0.0,                    // неважно — смотрим raw
             currency: $raw['currency'],
             comment: $raw['comment'],
             raw: $raw,
         );
 
-        $extra = ['user_id' => 42];
-        $db = $dto->toDbArray($extra);
+        $db = $dto->toDbArray();
 
-        // проверяем мердж и тип поля date
-        $this->assertSame(42, $db['user_id']);
+        $this->assertSame(0.0, $db['amount']);
+        $this->assertSame(0.0, $db['amount_per_one']);
+        $this->assertSame(0.25, $db['external_tax']);   // не изменилось
+        $this->assertSame(0.0, $db['tax_amount']);
         $this->assertInstanceOf(Carbon::class, $db['date']);
-        $this->assertTrue($db['date']->isSameDay('2025-06-06'));
-        $this->assertSame('dividend', $db['type_id']);
-        $this->assertSame(10.5, $db['amount']);
     }
 }
