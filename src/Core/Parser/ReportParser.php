@@ -83,7 +83,7 @@ final class ReportParser
                 dateTime: $c['date'] ?? $c['date_at'] ?? $c['datetime'] ?? '',
             ));
 
-        // 4. Комиссии
+        // 4. Корпоративные выплаты (дивиденды, компенсации)
         $payments = collect($r['corporate_actions']['detailed'] ?? [])
             ->map(fn ($p) => new PaymentDTO(
                 corporateActionId: $p['corporate_action_id'] ?? '',
