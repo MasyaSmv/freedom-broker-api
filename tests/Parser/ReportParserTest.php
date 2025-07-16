@@ -9,6 +9,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\BalanceDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CommissionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\OperationDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\PaymentDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PositionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
@@ -80,11 +81,13 @@ final class ReportParserTest extends TestCase
         $positionCnt = count($expected['account_at_end']['account']['positions_from_ts']['ps']['pos']);  // 8 (Бумаги)
         $balanceCnt = count($expected['account_at_end']['account']['positions_from_ts']['ps']['acc']);  // 3 (Счета)
         $commissionCnt = count($expected['commissions']['detailed']); // 210 (За все операции и задолженности)
+        $paymentCnt = count($expected['corporate_actions']['detailed']); // 9 (Выплаты)
 
         $this->assertEquals($tradeCnt + $transferCnt, $parsed['operations']->count(), 'operations count mismatch');
         $this->assertEquals($commissionCnt, $parsed['commissions']->count(), 'commissions count mismatch');
         $this->assertEquals($positionCnt, $parsed['positions']->count(), 'positions count mismatch');
-        $this->assertEquals($balanceCnt, $parsed['balances']->count(), 'balances  count mismatch');
+        $this->assertEquals($balanceCnt, $parsed['balances']->count(), 'balances count mismatch');
+        $this->assertEquals($paymentCnt, $parsed['payments']->count(), 'payments count mismatch');
 
         // 3. типы коллекций/DTO (заодно убеждаемся, что коллекции — Illuminate\Support\Collection)
         $map = [
@@ -92,6 +95,7 @@ final class ReportParserTest extends TestCase
             'commissions' => CommissionDTO::class,
             'positions' => PositionDTO::class,
             'balances' => BalanceDTO::class,
+            'payments' => PaymentDTO::class,
         ];
 
         foreach ($map as $key => $dtoClass) {
@@ -138,7 +142,7 @@ final class ReportParserTest extends TestCase
 
         // 1. Ключи
         $this->assertSame(
-            ['plain', 'operations', 'commissions', 'positions', 'balances', 'summary', 'period'],
+            ['plain', 'operations', 'commissions', 'payments', 'positions', 'balances', 'summary', 'period'],
             array_keys($parsed),
         );
 
@@ -152,6 +156,7 @@ final class ReportParserTest extends TestCase
             'commissions' => CommissionDTO::class,
             'positions' => PositionDTO::class,
             'balances' => BalanceDTO::class,
+            'payments' => PaymentDTO::class,
         ];
 
         foreach ($dtoCollections as $key => $dto) {
