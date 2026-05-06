@@ -129,4 +129,25 @@ final class FreedomManagerTest extends TestCase
         $this->assertSame(10.0, $history[0]->open);
         $this->assertSame(12.0, $history[0]->high);
     }
+
+    public function test_connect_exposes_typed_order_history(): void
+    {
+        $mock = new MockHandler([
+            new Response(200, [], '{"orders":[{"orderId":"O1","figi":"AAPL.US","quantity":1,"price":180,"status":"FILLED","orderType":"LIMIT"}]}'),
+        ]);
+        $manager = new FreedomManager(new FreedomClientFactory(
+            new FreedomConfig('https://api.test', FreedomHttpClient::V2),
+            http: new Client(['handler' => HandlerStack::create($mock)]),
+        ));
+
+        $orders = $manager->connect('public-key', 'private-key')
+            ->orderHistory('ACC-001', '2025-01-01', '2025-01-31');
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('get-orders-history', $form['cmd']);
+        $this->assertSame('ACC-001', $form['params']['accountId']);
+        $this->assertSame('O1', $orders[0]->orderId);
+        $this->assertSame('AAPL.US', $orders[0]->figi);
+    }
 }

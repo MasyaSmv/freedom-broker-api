@@ -80,9 +80,15 @@ $rawBody = $response->rawBody();
 
 ## Orders
 
-Orders are not part of the new `FreedomSession` surface yet. The old
-`Core\Service\OrderService` remains in the package, but read-only order
-history/status and trading commands still need a normalized resource layer.
+Read-only order history is available through the new session:
+
+```php
+$orders = $session->orderHistory('ACC-001', '2025-01-01', '2025-01-31');
+```
+
+Order status and trading commands still need a normalized resource layer. The
+old `Core\Service\OrderService` remains in the package for send/cancel/history
+compatibility during this phase.
 
 ## Suggested Whiteswan Migration Order
 
@@ -91,4 +97,5 @@ history/status and trading commands still need a normalized resource layer.
 3. Keep report loading on `loadBrokerReport()` and compare persisted report
    output with the previous `Freedom::load()` wrapper.
 4. Move securities and market lookups to typed session methods.
-5. Leave orders out of the new session flow until the orders block is refactored.
+5. Move read-only order history to `orderHistory()`; keep send/cancel on the
+   compatibility service until the trading block is refactored.

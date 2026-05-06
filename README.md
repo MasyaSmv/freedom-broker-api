@@ -21,6 +21,7 @@ provider.
 | Account | Credential validation through `getOPQ`, raw response and typed `AccountProfileDTO` |
 | Securities | Securities list with normalized `ApiResponse` and typed `StockDTO` collection |
 | Market data | Quote info and quote history |
+| Orders | Read-only order history |
 | Transport | V1/V2 signing, normalized response metadata, payload and API errors |
 | Laravel | Facade, service provider, runtime sessions and backward-compatible `load()` |
 
@@ -76,6 +77,7 @@ $report = $session->loadBrokerReport('2025-06-01', '2025-06-30');
 $stocks = $session->securitiesList(take: 100);
 $quote = $session->quoteInfo('AAPL.US');
 $bars = $session->quoteHistory('AAPL.US', new DateTimeImmutable('2024-01-01'), new DateTimeImmutable());
+$orders = $session->orderHistory('ACC-001', '2025-01-01', '2025-01-31');
 ```
 
 `Freedom::load($publicKey, $privateKey, $from, $to)` still works for existing
@@ -133,6 +135,7 @@ Typed session methods map normalized responses into DTOs and collections:
 | `securitiesList()` | `Collection<int, StockDTO>` |
 | `quoteInfo()` | `?StockDTO` |
 | `quoteHistory()` | `Collection<int, StockHistoryDTO>` |
+| `orderHistory()` | `Collection<int, OrderDTO>` |
 
 ## Compatibility Notes
 

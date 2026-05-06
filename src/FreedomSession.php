@@ -7,16 +7,19 @@ use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use MasyaSmv\FreedomBrokerApi\Core\Api\AccountApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\MarketApi;
+use MasyaSmv\FreedomBrokerApi\Core\Api\OrdersApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\ReportsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\SecuritiesApi;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\AccountMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\MarketMapper;
+use MasyaSmv\FreedomBrokerApi\Core\Mapper\OrderMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\ReportMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\SecuritiesMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
 use MasyaSmv\FreedomBrokerApi\Core\Request\BrokerReportRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\OrderHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritiesListRequest;
@@ -35,10 +38,12 @@ final class FreedomSession
     private AccountMapper $accountMapper;
     private SecuritiesMapper $securitiesMapper;
     private MarketMapper $marketMapper;
+    private OrderMapper $orderMapper;
     private ?ReportsApi $reportsApi;
     private ?AccountApi $accountApi;
     private ?SecuritiesApi $securitiesApi;
     private ?MarketApi $marketApi;
+    private ?OrdersApi $ordersApi;
 
     public function __construct(
         FreedomHttpClient $client,
@@ -52,10 +57,12 @@ final class FreedomSession
         $this->accountMapper = new AccountMapper();
         $this->securitiesMapper = new SecuritiesMapper();
         $this->marketMapper = new MarketMapper();
+        $this->orderMapper = new OrderMapper();
         $this->reportsApi = $apiClient ? new ReportsApi($apiClient) : null;
         $this->accountApi = $apiClient ? new AccountApi($apiClient) : null;
         $this->securitiesApi = $apiClient ? new SecuritiesApi($apiClient) : null;
         $this->marketApi = $apiClient ? new MarketApi($apiClient) : null;
+        $this->ordersApi = $apiClient ? new OrdersApi($apiClient) : null;
     }
 
     /**
@@ -111,6 +118,15 @@ final class FreedomSession
         return $this->marketApi->quoteHistory(new QuoteHistoryRequest($ticker, $from, $to));
     }
 
+    public function orderHistoryResponse(string $accountId, string $from, string $to): ApiResponse
+    {
+        if ($this->ordersApi === null) {
+            throw new \RuntimeException('Normalized orders API is not configured for this session.');
+        }
+
+        return $this->ordersApi->history(new OrderHistoryRequest($accountId, $from, $to));
+    }
+
     /**
      * @return Collection<int, StockDTO>
      */
@@ -133,6 +149,14 @@ final class FreedomSession
             $ticker,
             $this->quoteHistoryResponse($ticker, $from, $to),
         );
+    }
+
+    /**
+     * @return Collection<int, \MasyaSmv\FreedomBrokerApi\DTO\OrderDTO>
+     */
+    public function orderHistory(string $accountId, string $from, string $to): Collection
+    {
+        return $this->orderMapper->mapHistoryResponse($this->orderHistoryResponse($accountId, $from, $to));
     }
 
     /**
