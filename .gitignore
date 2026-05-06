@@ -60,3 +60,24 @@ composer.lock
 /public/build
 /storage/pail
 /build/coverage-html/
+# Added by code-review-graph
+.code-review-graph/
+
+###############################################################################
+# 8. Локальные AI/agent tooling файлы
+###############################################################################
+/.claude/
+/.codex/
+/.cursor/
+/.continue/
+/.kiro/
+/.roo/
+/.windsurf/
+/.aider*
+/.cursorrules
+/.mcp.json
+/.opencode.json
+/.windsurfrules
+/AGENTS.md
+/CLAUDE.md
+/GEMINI.md
