@@ -5,43 +5,31 @@
 [![Coverage Status](https://coveralls.io/repos/github/MasyaSmv/freedom-broker-api/badge.svg?branch=main)](https://coveralls.io/github/MasyaSmv/freedom-broker-api?branch=main)
 [![License](https://img.shields.io/packagist/l/masyasmv/freedom-broker-api?style=flat-square)](LICENSE)
 
-# Freedom Broker API SDK for PHP 8 / Laravel 8 +
+# Freedom Broker API SDK
 
-Lean, fully‐typed SDK for **Freedom24 (TraderNet) broker API**:
+Typed PHP SDK for Freedom24 / TraderNet broker API.
 
-| Domain          | What you get                                                                                                   |
-|-----------------|----------------------------------------------------------------------------------------------------------------|
-| **Reports**     | JSON fetch → strict DTO collections<br>balances, operations, positions, _payments_ (dividends / compensations) |
-| **Trading**     | send, cancel, list orders                                                                                      |
-| **Market data** | securities catalog, quotes, historical bars                                                                    |
-| **Auth**        | V1 & V2 HMAC request signing                                                                                   |
-| **Tooling**     | `ReportPeriodDTO` (start/end helpers)                                                                          |
+The package keeps broker credentials outside package config. Pass a public/private
+key pair when opening a session, or provide credentials through your own runtime
+provider.
 
-> All DTOs are Psalm-/PHPStan-friendly; persistence/business logic stays in **your**
-> app.([GitHub](https://raw.githubusercontent.com/MasyaSmv/freedom-broker-api/develop/README.md))
+## Features
 
----
+| Domain | API |
+| --- | --- |
+| Reports | Broker report loading and typed DTO collections for account, operations, commissions, payments, positions, balances and summary |
+| Account | Credential validation through `getOPQ`, raw response and typed `AccountProfileDTO` |
+| Securities | Securities list with normalized `ApiResponse` and typed `StockDTO` collection |
+| Market data | Quote info and quote history |
+| Transport | V1/V2 signing, normalized response metadata, payload and API errors |
+| Laravel | Facade, service provider, runtime sessions and backward-compatible `load()` |
 
-## ✨ What’s new (v 1.3.0)
+## Requirements
 
-* `PaymentDTO` + `payments` collection in parser (dividends, tax compensation).
-* Safe numeric casting: `"-"` or `""` ⇒ `0.0` in money fields.
-* `ReportPeriodDTO` with helpers `contains()` & `lengthInDays()`.
-* 100 % unit-coverage on GitHub Actions & Coveralls.
-* README overhaul 😎
-
-Full list: see [CHANGELOG](CHANGELOG.md).
-
----
-
-## ️Requirements
-
-* PHP **≥ 8.0** (8.1–8.3 preferred)
-* `ext-json`, `ext-mbstring`
-* Guzzle 7+
-* Laravel 8/9/10 (auto-discover)
-
----
+- PHP 8.0+
+- `ext-json`, `ext-mbstring`
+- Guzzle 7+
+- Laravel 8/9/10 for Laravel auto-discovery
 
 ## Installation
 
@@ -49,7 +37,7 @@ Full list: see [CHANGELOG](CHANGELOG.md).
 composer require masyasmv/freedom-broker-api
 ```
 
-### Laravel setup
+For Laravel, publish package config:
 
 ```bash
 php artisan vendor:publish \
@@ -57,78 +45,119 @@ php artisan vendor:publish \
   --tag="freedom-config"
 ```
 
+Only transport defaults live in config:
+
 ```dotenv
-FREEDOM_PUBLIC_KEY=your_public_key
-FREEDOM_PRIVATE_KEY=your_secret_key
+FREEDOM_API_URL=https://tradernet.ru/api
+FREEDOM_API_VERSION=2
+FREEDOM_HTTP_TIMEOUT=15
+FREEDOM_HTTP_CONNECT_TIMEOUT=10
+FREEDOM_HTTP_RETRIES=0
+FREEDOM_HTTP_RETRY_DELAY=100
+FREEDOM_HTTP_VERIFY_SSL=true
+FREEDOM_HTTP_USER_AGENT=freedom-broker-api
 ```
 
-That’s it – the package facade **`Freedom::`** is ready.
+Do not store user broker keys in `config/freedom.php`. Pass them at runtime.
 
----
-
-## Quick Start
+## Laravel Usage
 
 ```php
 use MasyaSmv\FreedomBrokerApi\Laravel\Facades\Freedom;
+use DateTimeImmutable;
 
-$public  = config('freedom.public_key');
-$private = config('freedom.private_key');
-// 1. Full broker report – now includes `payments`
-$report = Freedom::load($public, $private, '2025-06-01', '2025-06-30');
-$dividends = $report['payments'];      // Collection<PaymentDTO>
+$session = Freedom::connect(
+    publicKey: $user->freedom_public_key,
+    privateKey: $user->freedom_private_key,
+);
 
-// 2. Send order
-$order = Freedom::orders()->send('AAPL.US', 1, 182.50, 'ACC-123');
-
-// 3. Quote info
-$quote = Freedom::quotes()->get('AAPL.US');
-
-// 4. Historical bars
-$bars = Freedom::history()
-        ->history('AAPL.US', new DateTime('2024-01-01'), new DateTime());
+$profile = $session->accountProfile(); // AccountProfileDTO
+$report = $session->loadBrokerReport('2025-06-01', '2025-06-30');
+$stocks = $session->securitiesList(take: 100);
+$quote = $session->quoteInfo('AAPL.US');
+$bars = $session->quoteHistory('AAPL.US', new DateTimeImmutable('2024-01-01'), new DateTimeImmutable());
 ```
 
----
+`Freedom::load($publicKey, $privateKey, $from, $to)` still works for existing
+integrations and returns the broker report array.
 
-## API Reference (brief)
+## Pure PHP Usage
 
-| Service                               | Facade/helper        | Returns / DTO                 |
-|---------------------------------------|----------------------|-------------------------------|
-| `load($from,$to)`                     | `Freedom::load()`    | `array{…}` – see above        |
-| `StockService::all()`                 | `Freedom::stocks()`  | `Collection<StockDTO>`        |
-| `QuoteInfoService::get($ticker)`      | `Freedom::quotes()`  | `StockDTO                     |null` |
-| `StockHistoryService::history()`      | `Freedom::history()` | `Collection<StockHistoryDTO>` |
-| `OrderService::send/cancel/history()` | `Freedom::orders()`  | `OrderDTO                     |CancelOrderDTO|Collection` |
+```php
+use MasyaSmv\FreedomBrokerApi\Config\FreedomConfig;
+use MasyaSmv\FreedomBrokerApi\Core\Factory\FreedomClientFactory;
+use MasyaSmv\FreedomBrokerApi\Credentials\FreedomCredentials;
+use MasyaSmv\FreedomBrokerApi\FreedomSession;
 
----
+$config = new FreedomConfig(version: 2);
+$factory = new FreedomClientFactory($config);
+$credentials = new FreedomCredentials($publicKey, $privateKey);
 
-## ✅ Quality
+$session = new FreedomSession(
+    client: $factory->make($credentials),
+    apiClient: $factory->makeApiClient($credentials),
+);
+
+$response = $session->validateCredentials(); // ApiResponse
+$profile = $session->accountProfile();      // AccountProfileDTO
+```
+
+Use `CredentialsProviderInterface` when keys are resolved lazily from a vault,
+database row or request context:
+
+```php
+$session = Freedom::withCredentials($provider);
+```
+
+## Normalized Responses
+
+Low-level methods return `ApiResponse`:
+
+```php
+$response = $session->quoteInfoResponse('AAPL.US');
+
+if (!$response->successful()) {
+    $error = $response->error();
+}
+
+$payload = $response->payloadOrFail();
+$data = $payload->data();
+```
+
+Typed session methods map normalized responses into DTOs and collections:
+
+| Method | Return |
+| --- | --- |
+| `accountProfile()` | `AccountProfileDTO` |
+| `loadBrokerReport()` | broker report array with typed collections |
+| `securitiesList()` | `Collection<int, StockDTO>` |
+| `quoteInfo()` | `?StockDTO` |
+| `quoteHistory()` | `Collection<int, StockHistoryDTO>` |
+
+## Compatibility Notes
+
+`Freedom::load()` is kept for the current migration window. New code should
+prefer `Freedom::connect()` and typed methods on `FreedomSession`.
+
+See [Migration Guide](docs/MIGRATION-FOUNDATION.md) for the current refactor
+notes.
+
+## Quality
 
 ```bash
-composer test       # PHPUnit (unit + stub integration)
-composer coverage   # html/text coverage
-composer cs         # style check
-composer cs-fix     # auto-fix
-composer phpstan    # static analysis (level 8)
+composer test
+composer coverage
+composer cs
+composer cs-fix
+vendor/bin/phpstan analyse src tests
 ```
 
-Live API tests (`FREEDOM_LIVE_TEST=1`) are opt-in to keep CI
-fast.([GitHub](https://raw.githubusercontent.com/MasyaSmv/freedom-broker-api/develop/composer.json))
+Live API tests are opt-in:
 
----
-
-## Contributing
-
-1. Fork → feature branch (`feat/xxx`)
-2. Add tests (aim ≥ 95 % cov.)
-3. `composer test && composer cs`
-4. PR against `develop`
-
-We follow PSR-12 + Laravel conventions.
-
----
+```bash
+FREEDOM_LIVE_TEST=1 vendor/bin/phpunit --filter FreedomHttpClientTest
+```
 
 ## License
 
-Released under the **MIT** license.
-© Masya Smv, 2025
+Released under the MIT license.
