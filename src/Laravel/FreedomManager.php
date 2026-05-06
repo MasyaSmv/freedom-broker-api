@@ -3,21 +3,52 @@
 namespace MasyaSmv\FreedomBrokerApi\Laravel;
 
 use DateTime;
-use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use MasyaSmv\FreedomBrokerApi\Config\FreedomConfig;
 use MasyaSmv\FreedomBrokerApi\Contracts\FreedomManagerInterface;
+use MasyaSmv\FreedomBrokerApi\Core\Factory\FreedomClientFactory;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
-use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
-use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
-use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
-use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
+use MasyaSmv\FreedomBrokerApi\Credentials\CredentialsProviderInterface;
+use MasyaSmv\FreedomBrokerApi\Credentials\FreedomCredentials;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
+use MasyaSmv\FreedomBrokerApi\FreedomSession;
 
 class FreedomManager implements FreedomManagerInterface
 {
+    private FreedomClientFactory $clients;
+
+    public function __construct(?FreedomClientFactory $clients = null)
+    {
+        $this->clients = $clients ?? new FreedomClientFactory($this->configFromLaravel());
+    }
+
+    public function connect(string $publicKey, string $privateKey, ?string $sid = null, ?int $version = null): FreedomSession
+    {
+        return $this->withCredentials(new FreedomCredentials($publicKey, $privateKey, $sid), $version);
+    }
+
+    public function withCredentials(
+        FreedomCredentials|CredentialsProviderInterface $credentials,
+        ?int $version = null
+    ): FreedomSession {
+        return new FreedomSession(
+            $this->clients->make($credentials, $version),
+            apiClient: $this->clients->makeApiClient($credentials, $version),
+        );
+    }
+
+    public function client(
+        string $publicKey,
+        string $privateKey,
+        ?string $sid = null,
+        ?int $version = null
+    ): FreedomHttpClient {
+        return $this->clients->make(new FreedomCredentials($publicKey, $privateKey, $sid), $version);
+    }
+
     /**
      * Загружает отчёт брокера за указанный период.
      *
@@ -46,28 +77,31 @@ class FreedomManager implements FreedomManagerInterface
         ?string $to = null,
         int $version = FreedomHttpClient::V2
     ): array {
-        // 1. Вычисляем даты по умолчанию
         $from = $from ?: (new DateTime('-30 years'))->format('Y-m-d');
         $to = $to ?: (new DateTime())->format('Y-m-d');
 
-        // 2. Ключи из параметров или из конфига
-        $publicKey = $publicKey ?: (string)config('freedom.public_key');
-        $privateKey = $privateKey ?: (string)config('freedom.private_key');
+        $publicKey = $publicKey ?: $this->deprecatedConfigValue('public_key');
+        $privateKey = $privateKey ?: $this->deprecatedConfigValue('private_key');
 
-        // 3. Инстанцируем HTTP-клиент и signer
-        $http = new FreedomHttpClient(
-            http: new GuzzleClient(['timeout' => 15]),
-            signer: $version === FreedomHttpClient::V2
-                ? new V2Signer($privateKey)
-                : new V1Signer($privateKey),
-            apiKey: $publicKey,
-            version: $version,
-            apiUrl: config('freedom.api_url', 'https://tradernet.ru/api'),
-        );
+        return $this->connect($publicKey, $privateKey, version: $version)
+            ->loadBrokerReport($from, $to);
+    }
 
-        // 4. Парсер и сервис
-        $parser = new ReportParser();
-        // 5. Загружаем
-        return (new ReportService($http, $parser))->load($from, $to);
+    private function configFromLaravel(): FreedomConfig
+    {
+        if (!function_exists('config')) {
+            return new FreedomConfig();
+        }
+
+        return FreedomConfig::fromArray((array)config('freedom', []));
+    }
+
+    private function deprecatedConfigValue(string $key): string
+    {
+        if (!function_exists('config')) {
+            return '';
+        }
+
+        return (string)config("freedom.$key", '');
     }
 }
