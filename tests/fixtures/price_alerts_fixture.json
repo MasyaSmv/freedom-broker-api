@@ -1,0 +1,32 @@
+{
+    "alerts": [
+        {
+            "id": 76,
+            "auth_login": "virtual@virtual.com",
+            "ticker": "FCX.US",
+            "init_price": 9.8,
+            "trigger_price": "{\"price\":\"105\"}",
+            "quote_type": "ltp",
+            "notification_type": "email",
+            "trigger_type": "crossing",
+            "periodic": 0,
+            "expire": 0,
+            "triggered": "",
+            "deleted": "0"
+        },
+        {
+            "id": 77,
+            "auth_login": "virtual@virtual.com",
+            "ticker": "AAPL.US",
+            "init_price": 150.0,
+            "trigger_price": "{\"price\":\"200\"}",
+            "quote_type": "ltp",
+            "notification_type": "push",
+            "trigger_type": "greater_then",
+            "periodic": 60,
+            "expire": "end_of_day",
+            "triggered": "1",
+            "deleted": "0"
+        }
+    ]
+}

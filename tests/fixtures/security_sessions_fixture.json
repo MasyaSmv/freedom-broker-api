@@ -1,0 +1,26 @@
+[
+    {
+        "id": 7165011,
+        "owner_login": "virtual@virtual.com",
+        "user_login": "virtual@virtual.com",
+        "safety_type_id": 4,
+        "key_current": "Login, password",
+        "start_datetime": "2016-06-14T13:14:13.187",
+        "expire_datetime": "2016-06-15T13:14:13.187",
+        "expire": 85299,
+        "ip": "c5u7iip134fdfsxfqt4aq1osqchtg5b",
+        "ip_client": "19.16.32.32"
+    },
+    {
+        "id": 7165012,
+        "owner_login": "virtual@virtual.com",
+        "user_login": "broker@example.com",
+        "safety_type_id": 14,
+        "key_current": "SMS code",
+        "start_datetime": "2016-06-14T14:00:00.000",
+        "expire_datetime": "2016-06-21T14:00:00.000",
+        "expire": 604800,
+        "ip": "abc123def456",
+        "ip_client": "10.0.0.1"
+    }
+]

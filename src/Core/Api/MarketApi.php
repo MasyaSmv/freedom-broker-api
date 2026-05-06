@@ -5,6 +5,7 @@ namespace MasyaSmv\FreedomBrokerApi\Core\Api;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
 use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\NewsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
@@ -42,6 +43,11 @@ final class MarketApi
     }
 
     public function tickerFinder(TickerFinderRequest $request): ApiResponse
+    {
+        return $this->client->request($request->command(), $request->toPayload());
+    }
+
+    public function news(NewsRequest $request): ApiResponse
     {
         return $this->client->request($request->command(), $request->toPayload());
     }

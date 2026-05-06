@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\NewsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
@@ -87,6 +88,31 @@ final class MarketRequestTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new TickerFinderRequest('');
+    }
+
+    public function test_news_request_builds_payload(): void
+    {
+        $request = new NewsRequest(limit: 30, searchFor: 'Apple', ticker: 'AAPL.US', storyId: 200199);
+
+        $this->assertSame('getNews', $request->command());
+        $this->assertSame([
+            'limit' => 30,
+            'searchFor' => 'Apple',
+            'ticker' => 'AAPL.US',
+            'storyId' => 200199,
+        ], $request->toPayload());
+    }
+
+    public function test_news_request_allows_limit_only_payload(): void
+    {
+        $this->assertSame(['limit' => 30], (new NewsRequest(limit: 30))->toPayload());
+    }
+
+    public function test_news_request_requires_positive_limit(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new NewsRequest(limit: 0);
     }
 
     public function test_trades_request_builds_get_hloc_trades_payload(): void

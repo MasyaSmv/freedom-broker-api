@@ -13,6 +13,9 @@ use MasyaSmv\FreedomBrokerApi\Core\Api\OrdersApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\PortfolioApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\ReportsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\SecuritiesApi;
+use MasyaSmv\FreedomBrokerApi\Core\Api\AlertsApi;
+use MasyaSmv\FreedomBrokerApi\Core\Api\SecuritySessionsApi;
+use MasyaSmv\FreedomBrokerApi\Core\Api\WatchlistsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\AccountMapper;
@@ -25,7 +28,13 @@ use MasyaSmv\FreedomBrokerApi\Core\Mapper\OrderMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\PortfolioMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\ReportMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\SecuritiesMapper;
+use MasyaSmv\FreedomBrokerApi\Core\Mapper\AlertMapper;
+use MasyaSmv\FreedomBrokerApi\Core\Mapper\SecuritySessionMapper;
+use MasyaSmv\FreedomBrokerApi\Core\Mapper\WatchlistMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AddPriceAlertRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AddWatchlistRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AddWatchlistTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\BrokerReportRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CashFlowsRequest;
@@ -33,18 +42,27 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\ClientInstructionHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CpsFilesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CrossRatesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CurrentOrdersRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\DeletePriceAlertRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\DeleteWatchlistRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\DeleteWatchlistTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\DepositaryReportRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\PriceAlertsRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritySessionsRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\NewsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OrderHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritiesListRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\SelectWatchlistRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TopSecuritiesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\UpdateWatchlistRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\WatchlistsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
@@ -59,6 +77,8 @@ use MasyaSmv\FreedomBrokerApi\DTO\MarketStatusDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\OptionContractDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioAccountDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioPositionDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\PriceAlertDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\SecuritySessionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
@@ -66,6 +86,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\TickerSearchResultDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\TradeHistoryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\TradesDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\WatchlistDTO;
 
 final class FreedomSession
 {
@@ -80,6 +101,9 @@ final class FreedomSession
     private CurrencyMapper $currencyMapper;
     private CpsFileMapper $cpsFileMapper;
     private CashFlowMapper $cashFlowMapper;
+    private WatchlistMapper $watchlistMapper;
+    private AlertMapper $alertMapper;
+    private SecuritySessionMapper $securitySessionMapper;
     private ?ReportsApi $reportsApi;
     private ?AccountApi $accountApi;
     private ?SecuritiesApi $securitiesApi;
@@ -88,6 +112,9 @@ final class FreedomSession
     private ?InstructionsApi $instructionsApi;
     private ?PortfolioApi $portfolioApi;
     private ?CurrencyApi $currencyApi;
+    private ?WatchlistsApi $watchlistsApi;
+    private ?AlertsApi $alertsApi;
+    private ?SecuritySessionsApi $securitySessionsApi;
 
     public function __construct(
         FreedomHttpClient $client,
@@ -107,6 +134,9 @@ final class FreedomSession
         $this->currencyMapper = new CurrencyMapper();
         $this->cpsFileMapper = new CpsFileMapper();
         $this->cashFlowMapper = new CashFlowMapper();
+        $this->watchlistMapper = new WatchlistMapper();
+        $this->alertMapper = new AlertMapper();
+        $this->securitySessionMapper = new SecuritySessionMapper();
         $this->reportsApi = $apiClient ? new ReportsApi($apiClient) : null;
         $this->accountApi = $apiClient ? new AccountApi($apiClient) : null;
         $this->securitiesApi = $apiClient ? new SecuritiesApi($apiClient) : null;
@@ -115,6 +145,9 @@ final class FreedomSession
         $this->instructionsApi = $apiClient ? new InstructionsApi($apiClient) : null;
         $this->portfolioApi = $apiClient ? new PortfolioApi($apiClient) : null;
         $this->currencyApi = $apiClient ? new CurrencyApi($apiClient) : null;
+        $this->watchlistsApi = $apiClient ? new WatchlistsApi($apiClient) : null;
+        $this->alertsApi = $apiClient ? new AlertsApi($apiClient) : null;
+        $this->securitySessionsApi = $apiClient ? new SecuritySessionsApi($apiClient) : null;
     }
 
     /**
@@ -198,6 +231,19 @@ final class FreedomSession
         }
 
         return $this->marketApi->tickerFinder(new TickerFinderRequest($text));
+    }
+
+    public function newsResponse(
+        ?int $limit = null,
+        ?string $searchFor = null,
+        ?string $ticker = null,
+        ?int $storyId = null,
+    ): ApiResponse {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->news(new NewsRequest($limit, $searchFor, $ticker, $storyId));
     }
 
     public function tradesResponse(string $ticker): ApiResponse
@@ -485,6 +531,129 @@ final class FreedomSession
         return $this->cpsFileMapper->mapResponse($this->cpsFilesResponse($id, $internalId));
     }
 
+    public function watchlistsResponse(): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->lists(new WatchlistsRequest());
+    }
+
+    /**
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function watchlists(): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->watchlistsResponse());
+    }
+
+    /**
+     * @param string[] $tickers
+     */
+    public function addWatchlistResponse(string $name, ?string $picture = null, array $tickers = []): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->add(new AddWatchlistRequest($name, $picture, $tickers));
+    }
+
+    /**
+     * @param string[] $tickers
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function addWatchlist(string $name, ?string $picture = null, array $tickers = []): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->addWatchlistResponse($name, $picture, $tickers));
+    }
+
+    public function updateWatchlistResponse(int $id, string $name, string $picture = '', int $index = 0): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->update(new UpdateWatchlistRequest($id, $name, $picture, $index));
+    }
+
+    /**
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function updateWatchlist(int $id, string $name, string $picture = '', int $index = 0): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->updateWatchlistResponse($id, $name, $picture, $index));
+    }
+
+    public function deleteWatchlistResponse(int $id): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->delete(new DeleteWatchlistRequest($id));
+    }
+
+    /**
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function deleteWatchlist(int $id): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->deleteWatchlistResponse($id));
+    }
+
+    public function addWatchlistTickerResponse(int $id, string $ticker, int $index): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->addTicker(new AddWatchlistTickerRequest($id, $ticker, $index));
+    }
+
+    /**
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function addWatchlistTicker(int $id, string $ticker, int $index): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->addWatchlistTickerResponse($id, $ticker, $index));
+    }
+
+    public function deleteWatchlistTickerResponse(int $id, string $ticker): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->deleteTicker(new DeleteWatchlistTickerRequest($id, $ticker));
+    }
+
+    /**
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function deleteWatchlistTicker(int $id, string $ticker): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->deleteWatchlistTickerResponse($id, $ticker));
+    }
+
+    public function selectWatchlistResponse(int $id): ApiResponse
+    {
+        if ($this->watchlistsApi === null) {
+            throw new \RuntimeException('Normalized watchlists API is not configured for this session.');
+        }
+
+        return $this->watchlistsApi->select(new SelectWatchlistRequest($id));
+    }
+
+    /**
+     * @return Collection<int, WatchlistDTO>
+     */
+    public function selectWatchlist(int $id): Collection
+    {
+        return $this->watchlistMapper->mapResponse($this->selectWatchlistResponse($id));
+    }
+
     public function depositaryReportResponse(
         ?string $dateStart = null,
         ?string $dateEnd = null,
@@ -562,5 +731,70 @@ final class FreedomSession
         }
 
         return $this->reports->load($from, $to);
+    }
+
+    // --- Price Alerts ---
+
+    public function priceAlertsResponse(?string $ticker = null): ApiResponse
+    {
+        if ($this->alertsApi === null) {
+            throw new \RuntimeException('Normalized alerts API is not configured for this session.');
+        }
+
+        return $this->alertsApi->list(new PriceAlertsRequest($ticker));
+    }
+
+    /**
+     * @return Collection<int, PriceAlertDTO>
+     */
+    public function priceAlerts(?string $ticker = null): Collection
+    {
+        return $this->alertMapper->mapResponse($this->priceAlertsResponse($ticker));
+    }
+
+    public function addPriceAlertResponse(
+        string $ticker,
+        string $price,
+        string $triggerType = 'crossing',
+        string $quoteType = 'ltp',
+        string $notificationType = 'email',
+        int|string $alertPeriod = 0,
+        int|string $expire = 0,
+    ): ApiResponse {
+        if ($this->alertsApi === null) {
+            throw new \RuntimeException('Normalized alerts API is not configured for this session.');
+        }
+
+        return $this->alertsApi->add(
+            new AddPriceAlertRequest($ticker, $price, $triggerType, $quoteType, $notificationType, $alertPeriod, $expire),
+        );
+    }
+
+    public function deletePriceAlertResponse(int $id, string $quoteType = 'ltp', string $notificationType = 'email'): ApiResponse
+    {
+        if ($this->alertsApi === null) {
+            throw new \RuntimeException('Normalized alerts API is not configured for this session.');
+        }
+
+        return $this->alertsApi->delete(new DeletePriceAlertRequest($id, $quoteType, $notificationType));
+    }
+
+    // --- Security Sessions ---
+
+    public function securitySessionsResponse(): ApiResponse
+    {
+        if ($this->securitySessionsApi === null) {
+            throw new \RuntimeException('Normalized security sessions API is not configured for this session.');
+        }
+
+        return $this->securitySessionsApi->list(new SecuritySessionsRequest());
+    }
+
+    /**
+     * @return Collection<int, SecuritySessionDTO>
+     */
+    public function securitySessions(): Collection
+    {
+        return $this->securitySessionMapper->mapResponse($this->securitySessionsResponse());
     }
 }

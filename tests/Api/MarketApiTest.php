@@ -14,6 +14,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\NewsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
@@ -88,6 +89,18 @@ final class MarketApiTest extends TestCase
 
         $this->assertSame('tickerFinder', $form['cmd']);
         $this->assertSame('AAPL.US', $form['params']['text']);
+    }
+
+    public function test_it_sends_news_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"stories":[]}')]);
+        (new MarketApi($this->client($mock)))->news(new NewsRequest(30, ticker: 'AAPL.US'));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getNews', $form['cmd']);
+        $this->assertSame('30', $form['params']['limit']);
+        $this->assertSame('AAPL.US', $form['params']['ticker']);
     }
 
     public function test_it_sends_trades_command(): void
