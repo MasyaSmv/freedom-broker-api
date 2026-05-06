@@ -22,7 +22,7 @@ final class QuoteHistoryRequest implements CommandRequestInterface
 
     public function command(): string
     {
-        return 'quotes.getHloc';
+        return 'getHloc';
     }
 
     /**
@@ -35,8 +35,8 @@ final class QuoteHistoryRequest implements CommandRequestInterface
             'timeframe' => $this->timeframe,
             'intervalMode' => $this->intervalMode,
             'count' => $this->count,
-            'date_from' => $this->from->format('Y-m-d'),
-            'date_to' => $this->to->format('Y-m-d'),
+            'date_from' => $this->from->format('d.m.Y H:i'),
+            'date_to' => $this->to->format('d.m.Y H:i'),
         ];
     }
 }

@@ -19,20 +19,27 @@ final class OrdersApiTest extends TestCase
 {
     public function test_it_sends_order_history_command(): void
     {
-        $mock = new MockHandler([new Response(200, [], '{"orders":[]}')]);
+        $fixture = json_decode(
+            file_get_contents(__DIR__ . '/../fixtures/order_history_fixture.json'),
+            true,
+        );
+
+        $mock = new MockHandler([new Response(200, [], json_encode($fixture))]);
         $response = (new OrdersApi($this->client($mock)))->history(new OrderHistoryRequest(
-            'ACC-001',
-            '2025-01-01',
-            '2025-01-31',
+            '2020-03-23T00:00:00',
+            '2020-04-03T23:59:59',
         ));
 
         parse_str((string)$mock->getLastRequest()->getBody(), $form);
 
-        $this->assertSame('get-orders-history', $form['cmd']);
-        $this->assertSame('ACC-001', $form['params']['accountId']);
-        $this->assertSame('2025-01-01', $form['params']['from']);
-        $this->assertSame('2025-01-31', $form['params']['to']);
-        $this->assertSame([], $response->payloadOrFail()->get('orders'));
+        $this->assertSame('getOrdersHistory', $form['cmd']);
+        $this->assertSame('2020-03-23T00:00:00', $form['params']['from']);
+        $this->assertSame('2020-04-03T23:59:59', $form['params']['till']);
+        $this->assertArrayNotHasKey('accountId', $form['params']);
+
+        $orders = $response->payloadOrFail()->get('orders');
+        $this->assertSame('USER', $orders['key']);
+        $this->assertCount(2, $orders['order']);
     }
 
     private function client(MockHandler $mock): FreedomClient

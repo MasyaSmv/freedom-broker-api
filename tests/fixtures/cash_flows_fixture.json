@@ -1,0 +1,25 @@
+{
+    "total": 2,
+    "cashflow": [
+        {
+            "id": "9f0a11cc61",
+            "type_code": "commission_for_trades",
+            "icon": "commission",
+            "date": "2021-06-28",
+            "sum": "-3.00",
+            "comment": "(Trade 1515 2021-06-28 12:21:35)",
+            "currency": "USD",
+            "type_code_name": "Commission for trades"
+        },
+        {
+            "id": "9f0a11cc62",
+            "type_code": "deposit",
+            "icon": "deposit",
+            "date": "2021-06-29",
+            "sum": "1000.00",
+            "comment": "Bank transfer",
+            "currency": "USD",
+            "type_code_name": "Deposit"
+        }
+    ]
+}

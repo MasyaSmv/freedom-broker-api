@@ -15,7 +15,7 @@ final class QuoteInfoRequest implements CommandRequestInterface
 
     public function command(): string
     {
-        return 'quotes.getInfo';
+        return 'getSecurityInfo';
     }
 
     /**

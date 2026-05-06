@@ -27,7 +27,7 @@ final class MarketRequestTest extends TestCase
 
         $this->assertSame('ABC.US', $payload['id']);
         $this->assertSame(1440, $payload['timeframe']);
-        $this->assertSame('2024-01-01', $payload['date_from']);
-        $this->assertSame('2024-01-31', $payload['date_to']);
+        $this->assertSame('01.01.2024 00:00', $payload['date_from']);
+        $this->assertSame('31.01.2024 00:00', $payload['date_to']);
     }
 }

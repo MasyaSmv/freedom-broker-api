@@ -1,0 +1,36 @@
+{
+    "acc": [
+        {
+            "s": "1500.00",
+            "forecast_in": "100.00",
+            "forecast_out": "50.00",
+            "curr": "USD",
+            "currval": 1
+        }
+    ],
+    "pos": [
+        {
+            "i": "AAPL.US",
+            "t": 1,
+            "k": 1,
+            "s": 22.4,
+            "q": 100,
+            "fv": 100,
+            "curr": "USD",
+            "currval": 1,
+            "name": "Apple Inc.",
+            "name2": "Apple Inc.",
+            "open_bal": 299.4,
+            "mkt_price": 23.81,
+            "vm": 0,
+            "go": 0,
+            "profit_close": -2.4,
+            "acc_pos_id": 85600002,
+            "bal_price_a": 29.924,
+            "price_a": 29.924,
+            "profit_price": 2.83,
+            "market_value": 2381.0,
+            "close_price": 20.83
+        }
+    ]
+}

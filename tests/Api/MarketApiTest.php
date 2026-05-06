@@ -26,7 +26,7 @@ final class MarketApiTest extends TestCase
 
         parse_str((string)$mock->getLastRequest()->getBody(), $form);
 
-        $this->assertSame('quotes.getInfo', $form['cmd']);
+        $this->assertSame('getSecurityInfo', $form['cmd']);
         $this->assertSame('ABC.US', $form['params']['ticker']);
         $this->assertSame('ABC.US', $response->payloadOrFail()->get('c'));
     }
@@ -42,10 +42,10 @@ final class MarketApiTest extends TestCase
 
         parse_str((string)$mock->getLastRequest()->getBody(), $form);
 
-        $this->assertSame('quotes.getHloc', $form['cmd']);
+        $this->assertSame('getHloc', $form['cmd']);
         $this->assertSame('ABC.US', $form['params']['id']);
-        $this->assertSame('2024-01-01', $form['params']['date_from']);
-        $this->assertSame('2024-01-31', $form['params']['date_to']);
+        $this->assertSame('01.01.2024 00:00', $form['params']['date_from']);
+        $this->assertSame('31.01.2024 00:00', $form['params']['date_to']);
     }
 
     private function client(MockHandler $mock): FreedomClient

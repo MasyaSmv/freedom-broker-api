@@ -1,0 +1,35 @@
+{
+    "cps": [
+        {
+            "reception": 1,
+            "brief_nm": "5555555",
+            "iis": "regular",
+            "auth_login": "johndow@example.com",
+            "manager": "Smith Suzanna",
+            "manager_user_id": 123123123123,
+            "fio": "Dow John",
+            "tel": "+79999999901",
+            "id": 13123125345345,
+            "type_doc_id": 10160,
+            "user_id": 1347723723,
+            "date_crt": "2019-11-06 15:31:55",
+            "date_mod": "2019-11-06 15:31:56.068482",
+            "owner_login": "johndow@example.com",
+            "creator_login": "johndow@example.com",
+            "status_c": 3,
+            "params": {
+                "ip": "",
+                "sign": 1,
+                "secType": 3
+            },
+            "parent_id": null,
+            "submit_error": null,
+            "fl_export_billing": 0,
+            "name": "Копию SMS в Telegram",
+            "date_crt_msk": "2019-11-06 15:31:55.663147",
+            "is_blocked": false,
+            "available_for_cancel": false
+        }
+    ],
+    "total": 1
+}

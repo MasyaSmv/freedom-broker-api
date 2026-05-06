@@ -7,22 +7,17 @@ use InvalidArgumentException;
 final class OrderHistoryRequest implements CommandRequestInterface
 {
     public function __construct(
-        private string $accountId,
         private string $from,
-        private string $to
+        private string $till,
     ) {
-        if ($this->accountId === '') {
-            throw new InvalidArgumentException('Order history request account id must not be empty.');
-        }
-
-        if ($this->from === '' || $this->to === '') {
+        if ($this->from === '' || $this->till === '') {
             throw new InvalidArgumentException('Order history request period must not be empty.');
         }
     }
 
     public function command(): string
     {
-        return 'get-orders-history';
+        return 'getOrdersHistory';
     }
 
     /**
@@ -31,9 +26,8 @@ final class OrderHistoryRequest implements CommandRequestInterface
     public function toPayload(): array
     {
         return [
-            'accountId' => $this->accountId,
             'from' => $this->from,
-            'to' => $this->to,
+            'till' => $this->till,
         ];
     }
 }

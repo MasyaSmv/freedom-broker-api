@@ -27,7 +27,7 @@ final class SecuritiesListRequest implements CommandRequestInterface
 
     public function command(): string
     {
-        return 'securities.getList';
+        return 'getAllSecurities';
     }
 
     /**

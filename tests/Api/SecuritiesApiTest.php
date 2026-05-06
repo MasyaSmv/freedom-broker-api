@@ -35,7 +35,7 @@ final class SecuritiesApiTest extends TestCase
 
         parse_str((string)$mock->getLastRequest()->getBody(), $form);
 
-        $this->assertSame('securities.getList', $form['cmd']);
+        $this->assertSame('getAllSecurities', $form['cmd']);
         $this->assertSame('25', $form['params']['take']);
         $this->assertSame('50', $form['params']['skip']);
         $this->assertTrue($response->payloadOrFail()->has('securities'));

@@ -10,27 +10,26 @@ final class OrderHistoryRequestTest extends TestCase
 {
     public function test_it_builds_payload(): void
     {
-        $request = new OrderHistoryRequest('ACC-001', '2025-01-01', '2025-01-31');
+        $request = new OrderHistoryRequest('2020-03-23T00:00:00', '2020-04-03T23:59:59');
 
-        $this->assertSame('get-orders-history', $request->command());
+        $this->assertSame('getOrdersHistory', $request->command());
         $this->assertSame([
-            'accountId' => 'ACC-001',
-            'from' => '2025-01-01',
-            'to' => '2025-01-31',
+            'from' => '2020-03-23T00:00:00',
+            'till' => '2020-04-03T23:59:59',
         ], $request->toPayload());
     }
 
-    public function test_it_requires_account_id(): void
+    public function test_it_requires_from(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new OrderHistoryRequest('', '2025-01-01', '2025-01-31');
+        new OrderHistoryRequest('', '2020-04-03T23:59:59');
     }
 
-    public function test_it_requires_period(): void
+    public function test_it_requires_till(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new OrderHistoryRequest('ACC-001', '', '2025-01-31');
+        new OrderHistoryRequest('2020-03-23T00:00:00', '');
     }
 }
