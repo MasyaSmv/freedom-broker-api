@@ -33,6 +33,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\CpsFilesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CrossRatesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CurrentOrdersRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\DepositaryReportRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OrderHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
@@ -46,6 +47,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\CashFlowDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ClientInstructionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CpsFileDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CrossRatesDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\MarketStatusDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioAccountDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioPositionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
@@ -155,6 +157,15 @@ final class FreedomSession
         return $this->marketApi->quoteHistory(new QuoteHistoryRequest($ticker, $from, $to));
     }
 
+    public function marketStatusResponse(string $market = '*', ?string $mode = null): ApiResponse
+    {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->marketStatus(new MarketStatusRequest($market, $mode));
+    }
+
     public function orderHistoryResponse(string $from, string $till): ApiResponse
     {
         if ($this->ordersApi === null) {
@@ -186,6 +197,14 @@ final class FreedomSession
             $ticker,
             $this->quoteHistoryResponse($ticker, $from, $to),
         );
+    }
+
+    /**
+     * @return Collection<int, MarketStatusDTO>
+     */
+    public function marketStatus(string $market = '*', ?string $mode = null): Collection
+    {
+        return $this->marketMapper->mapMarketStatusResponse($this->marketStatusResponse($market, $mode));
     }
 
     /**

@@ -12,6 +12,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Api\MarketApi;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
+use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Transport\FreedomTransport;
@@ -46,6 +47,18 @@ final class MarketApiTest extends TestCase
         $this->assertSame('ABC.US', $form['params']['id']);
         $this->assertSame('01.01.2024 00:00', $form['params']['date_from']);
         $this->assertSame('31.01.2024 00:00', $form['params']['date_to']);
+    }
+
+    public function test_it_sends_market_status_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"result":{"markets":{"m":[]}}}')]);
+        (new MarketApi($this->client($mock)))->marketStatus(new MarketStatusRequest('KASE', 'demo'));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getMarketStatus', $form['cmd']);
+        $this->assertSame('KASE', $form['params']['market']);
+        $this->assertSame('demo', $form['params']['mode']);
     }
 
     private function client(MockHandler $mock): FreedomClient

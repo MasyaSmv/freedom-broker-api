@@ -52,6 +52,35 @@ final class MarketMapperTest extends TestCase
         $this->assertSame(11.0, $history[0]->close);
     }
 
+    public function test_it_maps_market_status_payload_to_dtos(): void
+    {
+        $statuses = (new MarketMapper())->mapMarketStatusResponse($this->response('getMarketStatus', [
+            'result' => [
+                'markets' => [
+                    't' => '2020-11-18 19:29:27',
+                    'm' => [
+                        [
+                            'n' => 'KASE',
+                            'n2' => 'KASE',
+                            's' => 'CLOSE',
+                            'o' => '08:20:00',
+                            'c' => '14:00:00',
+                            'dt' => '-180',
+                        ],
+                    ],
+                ],
+            ],
+        ]));
+
+        $this->assertCount(1, $statuses);
+        $this->assertSame('KASE', $statuses[0]->market);
+        $this->assertSame('CLOSE', $statuses[0]->status);
+        $this->assertSame('08:20:00', $statuses[0]->opensAt);
+        $this->assertSame('14:00:00', $statuses[0]->closesAt);
+        $this->assertSame(-180, $statuses[0]->timeOffsetMinutes);
+        $this->assertSame('2020-11-18 19:29:27', $statuses[0]->requestedAt);
+    }
+
     private function response(string $command, array $payload): ApiResponse
     {
         return new ApiResponse(
