@@ -58,6 +58,27 @@ final class FreedomManagerTest extends TestCase
         $this->assertSame('A1', $response->payloadOrFail()->get('account'));
     }
 
+    public function test_connect_exposes_typed_account_profile(): void
+    {
+        $mock = new MockHandler([new Response(200, [], json_encode([
+            'plainAccountInfoData' => [
+                'client_code' => 'TEST1234',
+                'client_name' => 'John Doe',
+                'base_currency' => 'USD',
+            ],
+        ]))]);
+        $manager = new FreedomManager(new FreedomClientFactory(
+            new FreedomConfig('https://api.test', FreedomHttpClient::V2),
+            http: new Client(['handler' => HandlerStack::create($mock)]),
+        ));
+
+        $profile = $manager->connect('public-key', 'private-key')->accountProfile();
+
+        $this->assertSame('TEST1234', $profile->clientCode);
+        $this->assertSame('John Doe', $profile->clientName);
+        $this->assertSame('USD', $profile->baseCurrency);
+    }
+
     public function test_legacy_load_uses_normalized_report_flow_and_preserves_result_shape(): void
     {
         $fixture = file_get_contents(__DIR__.'/../fixtures/report_fixture.json');

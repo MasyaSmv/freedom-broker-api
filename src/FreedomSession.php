@@ -11,6 +11,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Api\ReportsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\SecuritiesApi;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
+use MasyaSmv\FreedomBrokerApi\Core\Mapper\AccountMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\MarketMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\ReportMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\SecuritiesMapper;
@@ -22,6 +23,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritiesListRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\AccountProfileDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
@@ -30,6 +32,7 @@ final class FreedomSession
 {
     private ReportService $reports;
     private ReportMapper $reportMapper;
+    private AccountMapper $accountMapper;
     private SecuritiesMapper $securitiesMapper;
     private MarketMapper $marketMapper;
     private ?ReportsApi $reportsApi;
@@ -46,6 +49,7 @@ final class FreedomSession
 
         $this->reports = new ReportService($client, $reportParser);
         $this->reportMapper = new ReportMapper($reportParser);
+        $this->accountMapper = new AccountMapper();
         $this->securitiesMapper = new SecuritiesMapper();
         $this->marketMapper = new MarketMapper();
         $this->reportsApi = $apiClient ? new ReportsApi($apiClient) : null;
@@ -73,6 +77,11 @@ final class FreedomSession
         }
 
         return $this->accountApi->validateCredentials();
+    }
+
+    public function accountProfile(): AccountProfileDTO
+    {
+        return $this->accountMapper->mapResponse($this->validateCredentials());
     }
 
     public function securitiesListResponse(int $take = 50, int $skip = 0): ApiResponse
