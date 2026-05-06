@@ -9,6 +9,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use PHPUnit\Framework\TestCase;
 
 final class MarketRequestTest extends TestCase
@@ -82,5 +84,51 @@ final class MarketRequestTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new TickerFinderRequest('');
+    }
+
+    public function test_trades_request_builds_get_hloc_trades_payload(): void
+    {
+        $request = new TradesRequest('AAPL.US');
+
+        $this->assertSame('getHloc', $request->command());
+        $this->assertSame(['id' => 'AAPL.US', 'timeframe' => -1], $request->toPayload());
+    }
+
+    public function test_trades_request_requires_ticker(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new TradesRequest('');
+    }
+
+    public function test_trades_history_request_builds_payload(): void
+    {
+        $request = new TradesHistoryRequest(
+            '2020-03-23',
+            '2020-04-08',
+            tradeId: 232327727,
+            max: 100,
+            ticker: 'AAPL.US',
+            currency: 'USD',
+            reception: 1,
+        );
+
+        $this->assertSame('getTradesHistory', $request->command());
+        $this->assertSame([
+            'beginDate' => '2020-03-23',
+            'endDate' => '2020-04-08',
+            'tradeId' => 232327727,
+            'max' => 100,
+            'nt_ticker' => 'AAPL.US',
+            'curr' => 'USD',
+            'reception' => 1,
+        ], $request->toPayload());
+    }
+
+    public function test_trades_history_request_requires_period(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new TradesHistoryRequest('', '2020-04-08');
     }
 }

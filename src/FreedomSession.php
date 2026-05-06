@@ -40,6 +40,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritiesListRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
@@ -57,6 +59,8 @@ use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\TickerSearchResultDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\TradeHistoryDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\TradesDTO;
 
 final class FreedomSession
 {
@@ -191,6 +195,33 @@ final class FreedomSession
         return $this->marketApi->tickerFinder(new TickerFinderRequest($text));
     }
 
+    public function tradesResponse(string $ticker): ApiResponse
+    {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->trades(new TradesRequest($ticker));
+    }
+
+    public function tradesHistoryResponse(
+        string $beginDate,
+        string $endDate,
+        ?int $tradeId = null,
+        ?int $max = null,
+        ?string $ticker = null,
+        ?string $currency = null,
+        ?int $reception = null,
+    ): ApiResponse {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->tradesHistory(
+            new TradesHistoryRequest($beginDate, $endDate, $tradeId, $max, $ticker, $currency, $reception),
+        );
+    }
+
     public function orderHistoryResponse(string $from, string $till): ApiResponse
     {
         if ($this->ordersApi === null) {
@@ -247,6 +278,31 @@ final class FreedomSession
     public function tickerFinder(string $text): Collection
     {
         return $this->marketMapper->mapTickerFinderResponse($this->tickerFinderResponse($text));
+    }
+
+    /**
+     * @return Collection<int, TradesDTO>
+     */
+    public function trades(string $ticker): Collection
+    {
+        return $this->marketMapper->mapTradesResponse($this->tradesResponse($ticker));
+    }
+
+    /**
+     * @return array{items: Collection<int, TradeHistoryDTO>, maxTradeId: ?string}
+     */
+    public function tradesHistory(
+        string $beginDate,
+        string $endDate,
+        ?int $tradeId = null,
+        ?int $max = null,
+        ?string $ticker = null,
+        ?string $currency = null,
+        ?int $reception = null,
+    ): array {
+        return $this->marketMapper->mapTradesHistoryResponse(
+            $this->tradesHistoryResponse($beginDate, $endDate, $tradeId, $max, $ticker, $currency, $reception),
+        );
     }
 
     /**

@@ -8,6 +8,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
 
 final class MarketApi
@@ -37,6 +39,16 @@ final class MarketApi
     }
 
     public function tickerFinder(TickerFinderRequest $request): ApiResponse
+    {
+        return $this->client->request($request->command(), $request->toPayload());
+    }
+
+    public function trades(TradesRequest $request): ApiResponse
+    {
+        return $this->client->request($request->command(), $request->toPayload());
+    }
+
+    public function tradesHistory(TradesHistoryRequest $request): ApiResponse
     {
         return $this->client->request($request->command(), $request->toPayload());
     }

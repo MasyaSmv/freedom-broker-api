@@ -137,6 +137,55 @@ final class MarketMapperTest extends TestCase
         $this->assertSame('FIX', $results[0]->market);
     }
 
+    public function test_it_maps_trades_payload_to_dtos(): void
+    {
+        $trades = (new MarketMapper())->mapTradesResponse($this->response('getHloc', [
+            'AAPL.US' => [
+                'series' => [[1, 2, 3]],
+                'info' => [
+                    'id' => 'AAPL.US',
+                    'currency' => 'USD',
+                ],
+            ],
+            'took' => 2.759,
+        ]));
+
+        $this->assertCount(1, $trades);
+        $this->assertSame('AAPL.US', $trades[0]->ticker);
+        $this->assertSame([[1, 2, 3]], $trades[0]->series);
+        $this->assertSame('USD', $trades[0]->info['currency']);
+    }
+
+    public function test_it_maps_trades_history_payload_to_dtos(): void
+    {
+        $result = (new MarketMapper())->mapTradesHistoryResponse($this->response('getTradesHistory', [
+            'trades' => [
+                'max_trade_id' => [
+                    ['@text' => '40975888'],
+                ],
+                'trade' => [
+                    [
+                        'id' => 2229992229292,
+                        'order_id' => 299998887727,
+                        'p' => 141.4,
+                        'q' => 20,
+                        'v' => 2828,
+                        'date' => '2019-08-15T10:10:22',
+                        'instr_nm' => 'AAPL.US',
+                        'curr_c' => 'USD',
+                        'type' => 1,
+                    ],
+                ],
+            ],
+        ]));
+
+        $this->assertSame('40975888', $result['maxTradeId']);
+        $this->assertCount(1, $result['items']);
+        $this->assertSame('2229992229292', $result['items'][0]->id);
+        $this->assertSame('AAPL.US', $result['items'][0]->ticker);
+        $this->assertSame(141.4, $result['items'][0]->price);
+    }
+
     private function response(string $command, array $payload): ApiResponse
     {
         return new ApiResponse(

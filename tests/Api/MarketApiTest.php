@@ -17,6 +17,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Transport\FreedomTransport;
 use PHPUnit\Framework\TestCase;
 
@@ -83,6 +85,37 @@ final class MarketApiTest extends TestCase
 
         $this->assertSame('tickerFinder', $form['cmd']);
         $this->assertSame('AAPL.US', $form['params']['text']);
+    }
+
+    public function test_it_sends_trades_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"AAPL.US":{"series":[],"info":{}}}')]);
+        (new MarketApi($this->client($mock)))->trades(new TradesRequest('AAPL.US'));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getHloc', $form['cmd']);
+        $this->assertSame('AAPL.US', $form['params']['id']);
+        $this->assertSame('-1', $form['params']['timeframe']);
+    }
+
+    public function test_it_sends_trades_history_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"trades":{"trade":[]}}')]);
+        (new MarketApi($this->client($mock)))->tradesHistory(new TradesHistoryRequest(
+            '2020-03-23',
+            '2020-04-08',
+            max: 100,
+            ticker: 'AAPL.US',
+        ));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getTradesHistory', $form['cmd']);
+        $this->assertSame('2020-03-23', $form['params']['beginDate']);
+        $this->assertSame('2020-04-08', $form['params']['endDate']);
+        $this->assertSame('100', $form['params']['max']);
+        $this->assertSame('AAPL.US', $form['params']['nt_ticker']);
     }
 
     private function client(MockHandler $mock): FreedomClient

@@ -11,6 +11,8 @@ use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockHistoryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\TickerSearchResultDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\TradeHistoryDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\TradesDTO;
 
 final class MarketMapper
 {
@@ -271,5 +273,99 @@ final class MarketMapper
         }
 
         return is_numeric($value) ? (int)$value : null;
+    }
+
+    /**
+     * @return Collection<int, TradesDTO>
+     */
+    public function mapTradesResponse(ApiResponse $response): Collection
+    {
+        return $this->mapTradesPayload($response->payloadOrFail()->data());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return Collection<int, TradesDTO>
+     */
+    public function mapTradesPayload(array $payload): Collection
+    {
+        $out = collect();
+
+        foreach ($payload as $ticker => $block) {
+            if ($ticker === 'took' || !is_array($block)) {
+                continue;
+            }
+
+            $series = $block['series'] ?? [];
+            $info = $block['info'] ?? [];
+
+            $out->push(new TradesDTO(
+                ticker: (string)$ticker,
+                series: is_array($series) ? array_values($series) : [],
+                info: is_array($info) ? $info : [],
+                raw: $block,
+            ));
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array{items: Collection<int, TradeHistoryDTO>, maxTradeId: ?string}
+     */
+    public function mapTradesHistoryResponse(ApiResponse $response): array
+    {
+        return $this->mapTradesHistoryPayload($response->payloadOrFail()->data());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{items: Collection<int, TradeHistoryDTO>, maxTradeId: ?string}
+     */
+    public function mapTradesHistoryPayload(array $payload): array
+    {
+        $trades = $payload['trades'] ?? [];
+        $items = collect();
+
+        if (!is_array($trades)) {
+            return ['items' => $items, 'maxTradeId' => null];
+        }
+
+        $maxTradeRows = $trades['max_trade_id'] ?? [];
+        $maxTradeId = is_array($maxTradeRows) && isset($maxTradeRows[0]['@text'])
+            ? (string)$maxTradeRows[0]['@text']
+            : null;
+
+        $rows = $trades['trade'] ?? [];
+        if (!is_array($rows)) {
+            return ['items' => $items, 'maxTradeId' => $maxTradeId];
+        }
+
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $items->push($this->mapTradeHistoryRow($row));
+            }
+        }
+
+        return ['items' => $items, 'maxTradeId' => $maxTradeId];
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public function mapTradeHistoryRow(array $row): TradeHistoryDTO
+    {
+        return new TradeHistoryDTO(
+            id: (string)($row['id'] ?? ''),
+            orderId: (string)($row['order_id'] ?? ''),
+            ticker: (string)($row['instr_nm'] ?? ''),
+            price: (float)($row['p'] ?? 0),
+            quantity: (float)($row['q'] ?? 0),
+            value: (float)($row['v'] ?? $row['summ'] ?? 0),
+            date: (string)($row['date'] ?? ''),
+            currency: (string)($row['curr_c'] ?? ''),
+            type: (int)($row['type'] ?? 0),
+            raw: $row,
+        );
     }
 }
