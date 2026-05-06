@@ -26,6 +26,8 @@
             <!-- обязательный атрибут -->
             <text outputFile="php://stdout"
                   showUncoveredFiles="true"/>
+            <clover outputFile="coverage.xml"/>
+            <php outputFile="coverage.php"/>
             <html outputDirectory="./build/coverage-html"/>
         </report>
     </coverage>
@@ -33,12 +35,5 @@
         <includePath>tests/helpers</includePath>
         <env name="FREEDOM_LIVE_TEST" value="1"/>
     </php>
-
-    <logging>
-        <!-- ваш текущий clover -->
-        <log type="coverage-clover" target="coverage.xml"/>
-        <!-- добавляем lcov -->
-        <log type="coverage-php" target="coverage.php"/>
-    </logging>
 
 </phpunit>
