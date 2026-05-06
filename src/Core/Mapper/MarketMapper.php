@@ -6,7 +6,9 @@ use DateTimeImmutable;
 use Exception;
 use Illuminate\Support\Collection;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
+use MasyaSmv\FreedomBrokerApi\DTO\AllowedTickerDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\MarketStatusDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\OptionContractDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockHistoryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
@@ -25,7 +27,7 @@ final class MarketMapper
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param array<int|string, mixed> $payload
      * @throws Exception
      */
     public function mapQuoteInfoPayload(array $payload): ?StockDTO
@@ -367,5 +369,67 @@ final class MarketMapper
             type: (int)($row['type'] ?? 0),
             raw: $row,
         );
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function mapTopSecuritiesResponse(ApiResponse $response): Collection
+    {
+        $tickers = $response->payloadOrFail()->get('tickers', []);
+
+        if (!is_array($tickers)) {
+            return collect();
+        }
+
+        return collect(array_values(array_map('strval', $tickers)));
+    }
+
+    public function mapAllowedTickerResponse(ApiResponse $response): AllowedTickerDTO
+    {
+        $payload = $response->payloadOrFail()->data();
+        $allowedExpires = $payload['allowedExpires'] ?? [];
+
+        return new AllowedTickerDTO(
+            allowed: (bool)($payload['allowed'] ?? false),
+            allowedExpires: is_array($allowedExpires) ? array_map('intval', $allowedExpires) : [],
+            restriction: isset($payload['restriction']) ? (string)$payload['restriction'] : null,
+            operation: isset($payload['operation']) ? (string)$payload['operation'] : null,
+            recommendations: is_array($payload['recommendations'] ?? null) ? $payload['recommendations'] : [],
+            raw: $payload,
+        );
+    }
+
+    /**
+     * @return Collection<int, OptionContractDTO>
+     */
+    public function mapOptionsByMarketResponse(ApiResponse $response): Collection
+    {
+        return $this->mapOptionsByMarketPayload($response->payloadOrFail()->data());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return Collection<int, OptionContractDTO>
+     */
+    public function mapOptionsByMarketPayload(array $payload): Collection
+    {
+        $out = collect();
+
+        foreach ($payload as $row) {
+            if (is_array($row)) {
+                $out->push(new OptionContractDTO(
+                    ticker: (string)($row['ticker'] ?? ''),
+                    baseContractCode: (string)($row['base_contract_code'] ?? ''),
+                    lastTradeDate: (string)($row['last_trade_date'] ?? ''),
+                    expireDate: (string)($row['expire_date'] ?? ''),
+                    strikePrice: (float)($row['strike_price'] ?? 0),
+                    optionType: (string)($row['option_type'] ?? ''),
+                    raw: $row,
+                ));
+            }
+        }
+
+        return $out;
     }
 }

@@ -26,6 +26,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Mapper\PortfolioMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\ReportMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\SecuritiesMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\BrokerReportRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CashFlowsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\ClientInstructionHistoryRequest;
@@ -34,12 +35,14 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\CrossRatesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CurrentOrdersRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\DepositaryReportRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\OrderHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritiesListRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TopSecuritiesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
@@ -47,11 +50,13 @@ use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountProfileDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ActiveOrderDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\AllowedTickerDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CashFlowDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ClientInstructionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CpsFileDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CrossRatesDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\MarketStatusDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\OptionContractDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioAccountDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioPositionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
@@ -222,6 +227,37 @@ final class FreedomSession
         );
     }
 
+    public function topSecuritiesResponse(
+        string $type = 'stocks',
+        string $exchange = 'russia',
+        int $gainers = 0,
+        int $limit = 10,
+    ): ApiResponse {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->topSecurities(new TopSecuritiesRequest($type, $exchange, $gainers, $limit));
+    }
+
+    public function allowedTickerResponse(string $ticker, ?bool $checkBan = null): ApiResponse
+    {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->allowedTicker(new AllowedTickerRequest($ticker, $checkBan));
+    }
+
+    public function optionsByMarketResponse(string $market, string $baseContractCode): ApiResponse
+    {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->optionsByMarket(new OptionsByMarketRequest($market, $baseContractCode));
+    }
+
     public function orderHistoryResponse(string $from, string $till): ApiResponse
     {
         if ($this->ordersApi === null) {
@@ -303,6 +339,33 @@ final class FreedomSession
         return $this->marketMapper->mapTradesHistoryResponse(
             $this->tradesHistoryResponse($beginDate, $endDate, $tradeId, $max, $ticker, $currency, $reception),
         );
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function topSecurities(
+        string $type = 'stocks',
+        string $exchange = 'russia',
+        int $gainers = 0,
+        int $limit = 10,
+    ): Collection {
+        return $this->marketMapper->mapTopSecuritiesResponse(
+            $this->topSecuritiesResponse($type, $exchange, $gainers, $limit),
+        );
+    }
+
+    public function allowedTicker(string $ticker, ?bool $checkBan = null): AllowedTickerDTO
+    {
+        return $this->marketMapper->mapAllowedTickerResponse($this->allowedTickerResponse($ticker, $checkBan));
+    }
+
+    /**
+     * @return Collection<int, OptionContractDTO>
+     */
+    public function optionsByMarket(string $market, string $baseContractCode): Collection
+    {
+        return $this->marketMapper->mapOptionsByMarketResponse($this->optionsByMarketResponse($market, $baseContractCode));
     }
 
     /**

@@ -4,11 +4,14 @@ namespace MasyaSmv\FreedomBrokerApi\Tests\Request;
 
 use DateTimeImmutable;
 use InvalidArgumentException;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TopSecuritiesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use PHPUnit\Framework\TestCase;
@@ -130,5 +133,34 @@ final class MarketRequestTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new TradesHistoryRequest('', '2020-04-08');
+    }
+
+    public function test_top_securities_request_builds_payload(): void
+    {
+        $request = new TopSecuritiesRequest('stocks', 'russia', 1, 20);
+
+        $this->assertSame('getTopSecurities', $request->command());
+        $this->assertSame([
+            'type' => 'stocks',
+            'exchange' => 'russia',
+            'gainers' => 1,
+            'limit' => 20,
+        ], $request->toPayload());
+    }
+
+    public function test_allowed_ticker_request_builds_payload(): void
+    {
+        $request = new AllowedTickerRequest('AAPL.US', true);
+
+        $this->assertSame('checkAllowedTickerAndBanOnTrade', $request->command());
+        $this->assertSame(['ticker' => 'AAPL.US', 'checkBan' => true], $request->toPayload());
+    }
+
+    public function test_options_by_market_request_builds_payload(): void
+    {
+        $request = new OptionsByMarketRequest('FIX', 'T.US');
+
+        $this->assertSame('getOptionsByMktNameAndBaseAsset', $request->command());
+        $this->assertSame(['ltr' => 'FIX', 'base_contract_code' => 'T.US'], $request->toPayload());
     }
 }

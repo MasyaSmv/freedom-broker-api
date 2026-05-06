@@ -114,6 +114,9 @@ final class FreedomManagerTest extends TestCase
             new Response(200, [], '{"found":[{"instr_id":10000007229,"t":"AAPL.US","n":"Apple","nm":"Apple Inc.","ln":"Apple Inc.","isin":"US0378331005","type":1,"kind":1,"mkt":"FIX","mkt_id":30000000001,"code_nm":"AAPL"}]}'),
             new Response(200, [], '{"AAPL.US":{"series":[[1,2,3]],"info":{"id":"AAPL.US","currency":"USD"}},"took":2.759}'),
             new Response(200, [], '{"trades":{"max_trade_id":[{"@text":"40975888"}],"trade":[{"id":2229992229292,"order_id":299998887727,"p":141.4,"q":20,"v":2828,"date":"2019-08-15T10:10:22","instr_nm":"AAPL.US","curr_c":"USD","type":1}]}}'),
+            new Response(200, [], '{"tickers":["AAPL.US","F.US"]}'),
+            new Response(200, [], '{"allowed":1,"allowedExpires":[1,3,2]}'),
+            new Response(200, [], '[{"ticker":"+T^D1K40.US","base_contract_code":"T.US","last_trade_date":"2023-01-20","expire_date":"2023-01-20","strike_price":"10","option_type":"CALL"}]'),
         ]);
         $manager = new FreedomManager(new FreedomClientFactory(
             new FreedomConfig('https://api.test', FreedomHttpClient::V2),
@@ -133,6 +136,9 @@ final class FreedomManagerTest extends TestCase
         $found = $session->tickerFinder('AAPL.US');
         $trades = $session->trades('AAPL.US');
         $historyTrades = $session->tradesHistory('2020-03-23', '2020-04-08', max: 100);
+        $top = $session->topSecurities();
+        $allowed = $session->allowedTicker('AAPL.US', true);
+        $options = $session->optionsByMarket('FIX', 'T.US');
 
         $this->assertSame('ABC.US', $stocks[0]->ticker);
         $this->assertSame('ABC.US', $stock?->ticker);
@@ -146,6 +152,9 @@ final class FreedomManagerTest extends TestCase
         $this->assertSame('AAPL.US', $trades[0]->ticker);
         $this->assertSame('40975888', $historyTrades['maxTradeId']);
         $this->assertSame('AAPL.US', $historyTrades['items'][0]->ticker);
+        $this->assertSame(['AAPL.US', 'F.US'], $top->all());
+        $this->assertTrue($allowed->allowed);
+        $this->assertSame('+T^D1K40.US', $options[0]->ticker);
     }
 
     public function test_connect_exposes_typed_order_history(): void

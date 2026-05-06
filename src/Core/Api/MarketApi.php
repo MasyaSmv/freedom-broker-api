@@ -3,11 +3,14 @@
 namespace MasyaSmv\FreedomBrokerApi\Core\Api;
 
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TopSecuritiesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
@@ -49,6 +52,21 @@ final class MarketApi
     }
 
     public function tradesHistory(TradesHistoryRequest $request): ApiResponse
+    {
+        return $this->client->request($request->command(), $request->toPayload());
+    }
+
+    public function topSecurities(TopSecuritiesRequest $request): ApiResponse
+    {
+        return $this->client->request($request->command(), $request->toPayload());
+    }
+
+    public function allowedTicker(AllowedTickerRequest $request): ApiResponse
+    {
+        return $this->client->request($request->command(), $request->toPayload());
+    }
+
+    public function optionsByMarket(OptionsByMarketRequest $request): ApiResponse
     {
         return $this->client->request($request->command(), $request->toPayload());
     }

@@ -12,11 +12,14 @@ use MasyaSmv\FreedomBrokerApi\Core\Api\MarketApi;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
+use MasyaSmv\FreedomBrokerApi\Core\Request\AllowedTickerRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\OptionsByMarketRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TopSecuritiesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Transport\FreedomTransport;
@@ -116,6 +119,44 @@ final class MarketApiTest extends TestCase
         $this->assertSame('2020-04-08', $form['params']['endDate']);
         $this->assertSame('100', $form['params']['max']);
         $this->assertSame('AAPL.US', $form['params']['nt_ticker']);
+    }
+
+    public function test_it_sends_top_securities_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"tickers":["AAPL.US"]}')]);
+        (new MarketApi($this->client($mock)))->topSecurities(new TopSecuritiesRequest('stocks', 'russia', 0, 10));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getTopSecurities', $form['cmd']);
+        $this->assertSame('stocks', $form['params']['type']);
+        $this->assertSame('russia', $form['params']['exchange']);
+        $this->assertSame('0', $form['params']['gainers']);
+        $this->assertSame('10', $form['params']['limit']);
+    }
+
+    public function test_it_sends_allowed_ticker_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"allowed":1,"allowedExpires":[1,3,2]}')]);
+        (new MarketApi($this->client($mock)))->allowedTicker(new AllowedTickerRequest('AAPL.US', true));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('checkAllowedTickerAndBanOnTrade', $form['cmd']);
+        $this->assertSame('AAPL.US', $form['params']['ticker']);
+        $this->assertSame('1', $form['params']['checkBan']);
+    }
+
+    public function test_it_sends_options_by_market_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '[]')]);
+        (new MarketApi($this->client($mock)))->optionsByMarket(new OptionsByMarketRequest('FIX', 'T.US'));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getOptionsByMktNameAndBaseAsset', $form['cmd']);
+        $this->assertSame('FIX', $form['params']['ltr']);
+        $this->assertSame('T.US', $form['params']['base_contract_code']);
     }
 
     private function client(MockHandler $mock): FreedomClient

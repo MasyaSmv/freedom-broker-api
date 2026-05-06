@@ -186,6 +186,53 @@ final class MarketMapperTest extends TestCase
         $this->assertSame(141.4, $result['items'][0]->price);
     }
 
+    public function test_it_maps_top_securities_payload_to_tickers(): void
+    {
+        $tickers = (new MarketMapper())->mapTopSecuritiesResponse($this->response('getTopSecurities', [
+            'tickers' => ['AAPL.US', 'F.US'],
+        ]));
+
+        $this->assertSame(['AAPL.US', 'F.US'], $tickers->all());
+    }
+
+    public function test_it_maps_allowed_ticker_payload_to_dto(): void
+    {
+        $allowed = (new MarketMapper())->mapAllowedTickerResponse($this->response('checkAllowedTickerAndBanOnTrade', [
+            'allowed' => 0,
+            'allowedExpires' => [1, 3, 2],
+            'restriction' => 'Not available',
+            'operation' => null,
+            'recommendations' => [
+                ['title' => 'Update data', 'trading_blocked' => true],
+            ],
+        ]));
+
+        $this->assertFalse($allowed->allowed);
+        $this->assertSame([1, 3, 2], $allowed->allowedExpires);
+        $this->assertSame('Not available', $allowed->restriction);
+        $this->assertCount(1, $allowed->recommendations);
+    }
+
+    public function test_it_maps_options_by_market_payload_to_dtos(): void
+    {
+        $options = (new MarketMapper())->mapOptionsByMarketResponse($this->response('getOptionsByMktNameAndBaseAsset', [
+            [
+                'ticker' => '+T^D1K40.US',
+                'base_contract_code' => 'T.US',
+                'last_trade_date' => '2023-01-20',
+                'expire_date' => '2023-01-20',
+                'strike_price' => '10',
+                'option_type' => 'CALL',
+            ],
+        ]));
+
+        $this->assertCount(1, $options);
+        $this->assertSame('+T^D1K40.US', $options[0]->ticker);
+        $this->assertSame('T.US', $options[0]->baseContractCode);
+        $this->assertSame(10.0, $options[0]->strikePrice);
+        $this->assertSame('CALL', $options[0]->optionType);
+    }
+
     private function response(string $command, array $payload): ApiResponse
     {
         return new ApiResponse(
