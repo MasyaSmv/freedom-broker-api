@@ -38,6 +38,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\OrderHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\SecuritiesListRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
@@ -53,6 +55,8 @@ use MasyaSmv\FreedomBrokerApi\DTO\PortfolioPositionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\TickerSearchResultDTO;
 
 final class FreedomSession
 {
@@ -166,6 +170,27 @@ final class FreedomSession
         return $this->marketApi->marketStatus(new MarketStatusRequest($market, $mode));
     }
 
+    /**
+     * @param string[] $tickers
+     */
+    public function stockQuotesResponse(array $tickers): ApiResponse
+    {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->stockQuotes(new StockQuotesRequest($tickers));
+    }
+
+    public function tickerFinderResponse(string $text): ApiResponse
+    {
+        if ($this->marketApi === null) {
+            throw new \RuntimeException('Normalized market API is not configured for this session.');
+        }
+
+        return $this->marketApi->tickerFinder(new TickerFinderRequest($text));
+    }
+
     public function orderHistoryResponse(string $from, string $till): ApiResponse
     {
         if ($this->ordersApi === null) {
@@ -205,6 +230,23 @@ final class FreedomSession
     public function marketStatus(string $market = '*', ?string $mode = null): Collection
     {
         return $this->marketMapper->mapMarketStatusResponse($this->marketStatusResponse($market, $mode));
+    }
+
+    /**
+     * @param string[] $tickers
+     * @return Collection<int, StockQuoteDTO>
+     */
+    public function stockQuotes(array $tickers): Collection
+    {
+        return $this->marketMapper->mapStockQuotesResponse($this->stockQuotesResponse($tickers));
+    }
+
+    /**
+     * @return Collection<int, TickerSearchResultDTO>
+     */
+    public function tickerFinder(string $text): Collection
+    {
+        return $this->marketMapper->mapTickerFinderResponse($this->tickerFinderResponse($text));
     }
 
     /**

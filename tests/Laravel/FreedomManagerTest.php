@@ -110,6 +110,8 @@ final class FreedomManagerTest extends TestCase
             new Response(200, [], '{"c":"ABC.US","n":123,"short_name":"ABC","instr_type_c":1,"curr":"USD","l":10.5}'),
             new Response(200, [], '{"hloc":{"ABC.US":[[12,9,10,11]]},"xSeries":{"ABC.US":["2024-01-02"]}}'),
             new Response(200, [], '{"result":{"markets":{"t":"2020-11-18 19:29:27","m":[{"n":"KASE","n2":"KASE","s":"CLOSE","o":"08:20:00","c":"14:00:00","dt":"-180"}]}}}'),
+            new Response(200, [], '{"result":{"q":[{"c":"AAPL.US","name":"Apple Inc.","ltp":"147,42"}]}}'),
+            new Response(200, [], '{"found":[{"instr_id":10000007229,"t":"AAPL.US","n":"Apple","nm":"Apple Inc.","ln":"Apple Inc.","isin":"US0378331005","type":1,"kind":1,"mkt":"FIX","mkt_id":30000000001,"code_nm":"AAPL"}]}'),
         ]);
         $manager = new FreedomManager(new FreedomClientFactory(
             new FreedomConfig('https://api.test', FreedomHttpClient::V2),
@@ -125,6 +127,8 @@ final class FreedomManagerTest extends TestCase
             new DateTimeImmutable('2024-01-31'),
         );
         $statuses = $session->marketStatus('KASE', 'demo');
+        $quotes = $session->stockQuotes(['AAPL.US']);
+        $found = $session->tickerFinder('AAPL.US');
 
         $this->assertSame('ABC.US', $stocks[0]->ticker);
         $this->assertSame('ABC.US', $stock?->ticker);
@@ -132,6 +136,9 @@ final class FreedomManagerTest extends TestCase
         $this->assertSame(12.0, $history[0]->high);
         $this->assertSame('KASE', $statuses[0]->market);
         $this->assertSame('CLOSE', $statuses[0]->status);
+        $this->assertSame('AAPL.US', $quotes[0]->ticker);
+        $this->assertSame(147.42, $quotes[0]->lastPrice);
+        $this->assertSame('AAPL.US', $found[0]->ticker);
     }
 
     public function test_connect_exposes_typed_order_history(): void

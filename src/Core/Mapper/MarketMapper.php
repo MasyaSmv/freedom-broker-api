@@ -9,6 +9,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
 use MasyaSmv\FreedomBrokerApi\DTO\MarketStatusDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockHistoryDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\TickerSearchResultDTO;
 
 final class MarketMapper
 {
@@ -141,5 +143,133 @@ final class MarketMapper
             requestedAt: $requestedAt,
             raw: $row,
         );
+    }
+
+    /**
+     * @return Collection<int, StockQuoteDTO>
+     */
+    public function mapStockQuotesResponse(ApiResponse $response): Collection
+    {
+        return $this->mapStockQuotesPayload($response->payloadOrFail()->data());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return Collection<int, StockQuoteDTO>
+     */
+    public function mapStockQuotesPayload(array $payload): Collection
+    {
+        $out = collect();
+        $rows = $payload['result']['q'] ?? [];
+
+        if (!is_array($rows)) {
+            return $out;
+        }
+
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $out->push($this->mapStockQuoteRow($row));
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public function mapStockQuoteRow(array $row): StockQuoteDTO
+    {
+        return new StockQuoteDTO(
+            ticker: (string)($row['c'] ?? ''),
+            name: (string)($row['name'] ?? ''),
+            name2: (string)($row['name2'] ?? ''),
+            lastPrice: $this->toFloat($row['ltp'] ?? $row['l'] ?? null),
+            previousClose: $this->toFloat($row['pp'] ?? null),
+            change: $this->toFloat($row['chg'] ?? null),
+            percentChange: $this->toFloat($row['pcp'] ?? null),
+            bestBid: $this->toFloat($row['bbp'] ?? null),
+            bestAsk: $this->toFloat($row['bap'] ?? null),
+            volume: $this->toInt($row['vol'] ?? null),
+            lastTradeAt: isset($row['ltt']) ? (string)$row['ltt'] : null,
+            raw: $row,
+        );
+    }
+
+    /**
+     * @return Collection<int, TickerSearchResultDTO>
+     */
+    public function mapTickerFinderResponse(ApiResponse $response): Collection
+    {
+        return $this->mapTickerFinderPayload($response->payloadOrFail()->data());
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return Collection<int, TickerSearchResultDTO>
+     */
+    public function mapTickerFinderPayload(array $payload): Collection
+    {
+        $out = collect();
+        $rows = $payload['found'] ?? $payload['result']['found'] ?? [];
+
+        if (!is_array($rows)) {
+            return $out;
+        }
+
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $out->push($this->mapTickerFinderRow($row));
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public function mapTickerFinderRow(array $row): TickerSearchResultDTO
+    {
+        return new TickerSearchResultDTO(
+            instrumentId: (int)($row['instr_id'] ?? 0),
+            ticker: (string)($row['t'] ?? ''),
+            name: (string)($row['n'] ?? ''),
+            longName: (string)($row['nm'] ?? ''),
+            englishName: (string)($row['ln'] ?? ''),
+            isin: (string)($row['isin'] ?? ''),
+            type: (int)($row['type'] ?? 0),
+            kind: (int)($row['kind'] ?? 0),
+            market: (string)($row['mkt'] ?? ''),
+            marketId: (int)($row['mkt_id'] ?? 0),
+            exchangeCode: (string)($row['code_nm'] ?? ''),
+            raw: $row,
+        );
+    }
+
+    private function toFloat(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $value = str_replace(',', '.', $value);
+        }
+
+        return is_numeric($value) ? (float)$value : null;
+    }
+
+    private function toInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $value = str_replace(',', '.', $value);
+        }
+
+        return is_numeric($value) ? (int)$value : null;
     }
 }

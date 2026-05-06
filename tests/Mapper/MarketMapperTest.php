@@ -81,6 +81,62 @@ final class MarketMapperTest extends TestCase
         $this->assertSame('2020-11-18 19:29:27', $statuses[0]->requestedAt);
     }
 
+    public function test_it_maps_stock_quotes_payload_to_dtos(): void
+    {
+        $quotes = (new MarketMapper())->mapStockQuotesResponse($this->response('getStockQuotesJson', [
+            'result' => [
+                'q' => [
+                    [
+                        'c' => 'AAPL.US',
+                        'name' => 'Apple Inc.',
+                        'name2' => 'Apple Inc.',
+                        'ltp' => '147,42',
+                        'pp' => '147,95',
+                        'chg' => '-0,53',
+                        'pcp' => '-0,36',
+                        'bbp' => '147,39',
+                        'bap' => '147,45',
+                        'vol' => '129617290',
+                        'ltt' => '2016-10-05T17:04:43',
+                    ],
+                ],
+            ],
+        ]));
+
+        $this->assertCount(1, $quotes);
+        $this->assertSame('AAPL.US', $quotes[0]->ticker);
+        $this->assertSame(147.42, $quotes[0]->lastPrice);
+        $this->assertSame(-0.53, $quotes[0]->change);
+        $this->assertSame(129617290, $quotes[0]->volume);
+    }
+
+    public function test_it_maps_ticker_finder_payload_to_dtos(): void
+    {
+        $results = (new MarketMapper())->mapTickerFinderResponse($this->response('tickerFinder', [
+            'found' => [
+                [
+                    'instr_id' => 10000007229,
+                    't' => 'AAPL.US',
+                    'n' => 'Apple',
+                    'nm' => 'Apple Inc.',
+                    'ln' => 'Apple Inc.',
+                    'isin' => 'US0378331005',
+                    'type' => 1,
+                    'kind' => 1,
+                    'mkt' => 'FIX',
+                    'mkt_id' => 30000000001,
+                    'code_nm' => 'AAPL',
+                ],
+            ],
+        ]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame(10000007229, $results[0]->instrumentId);
+        $this->assertSame('AAPL.US', $results[0]->ticker);
+        $this->assertSame('US0378331005', $results[0]->isin);
+        $this->assertSame('FIX', $results[0]->market);
+    }
+
     private function response(string $command, array $payload): ApiResponse
     {
         return new ApiResponse(

@@ -7,6 +7,8 @@ use InvalidArgumentException;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
 use PHPUnit\Framework\TestCase;
 
 final class MarketRequestTest extends TestCase
@@ -50,5 +52,35 @@ final class MarketRequestTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new MarketStatusRequest('');
+    }
+
+    public function test_stock_quotes_request_builds_payload(): void
+    {
+        $request = new StockQuotesRequest(['AAPL.US', 'F.US']);
+
+        $this->assertSame('getStockQuotesJson', $request->command());
+        $this->assertSame(['tickers' => ['AAPL.US', 'F.US']], $request->toPayload());
+    }
+
+    public function test_stock_quotes_request_requires_tickers(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new StockQuotesRequest([]);
+    }
+
+    public function test_ticker_finder_request_builds_payload(): void
+    {
+        $request = new TickerFinderRequest('AAPL.US');
+
+        $this->assertSame('tickerFinder', $request->command());
+        $this->assertSame(['text' => 'AAPL.US'], $request->toPayload());
+    }
+
+    public function test_ticker_finder_request_requires_text(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new TickerFinderRequest('');
     }
 }

@@ -15,6 +15,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Request\MarketStatusRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\QuoteInfoRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\StockQuotesRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\TickerFinderRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Transport\FreedomTransport;
 use PHPUnit\Framework\TestCase;
 
@@ -59,6 +61,28 @@ final class MarketApiTest extends TestCase
         $this->assertSame('getMarketStatus', $form['cmd']);
         $this->assertSame('KASE', $form['params']['market']);
         $this->assertSame('demo', $form['params']['mode']);
+    }
+
+    public function test_it_sends_stock_quotes_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"result":{"q":[]}}')]);
+        (new MarketApi($this->client($mock)))->stockQuotes(new StockQuotesRequest(['AAPL.US', 'F.US']));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('getStockQuotesJson', $form['cmd']);
+        $this->assertSame(['AAPL.US', 'F.US'], $form['params']['tickers']);
+    }
+
+    public function test_it_sends_ticker_finder_command(): void
+    {
+        $mock = new MockHandler([new Response(200, [], '{"found":[]}')]);
+        (new MarketApi($this->client($mock)))->tickerFinder(new TickerFinderRequest('AAPL.US'));
+
+        parse_str((string)$mock->getLastRequest()->getBody(), $form);
+
+        $this->assertSame('tickerFinder', $form['cmd']);
+        $this->assertSame('AAPL.US', $form['params']['text']);
     }
 
     private function client(MockHandler $mock): FreedomClient
