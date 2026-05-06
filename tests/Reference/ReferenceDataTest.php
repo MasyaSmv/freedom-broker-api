@@ -2,6 +2,7 @@
 
 namespace MasyaSmv\FreedomBrokerApi\Tests\Reference;
 
+use MasyaSmv\FreedomBrokerApi\Reference\CpsDocType;
 use MasyaSmv\FreedomBrokerApi\Reference\CurrencyCode;
 use MasyaSmv\FreedomBrokerApi\Reference\InstrumentType;
 use MasyaSmv\FreedomBrokerApi\Reference\OrderStatus;
@@ -219,5 +220,30 @@ final class ReferenceDataTest extends TestCase
     public function test_currency_code_label_unknown_returns_code(): void
     {
         $this->assertSame('XXX', CurrencyCode::label('XXX'));
+    }
+
+    // --- CpsDocType ---
+
+    public function test_cps_doc_type_all_has_more_than_100_entries(): void
+    {
+        $this->assertGreaterThan(100, count(CpsDocType::all()));
+    }
+
+    public function test_cps_doc_type_label_known(): void
+    {
+        $this->assertSame('Между счетами',     CpsDocType::label(1));
+        $this->assertSame('Поручение брокеру', CpsDocType::label(46));
+        $this->assertSame('SWIFT-перевод',     CpsDocType::label(50));
+        $this->assertSame('Торговые поручения', CpsDocType::label(275));
+    }
+
+    public function test_cps_doc_type_label_negative_id(): void
+    {
+        $this->assertSame('Выпустить Инвестиционную карту (Архивное)', CpsDocType::label(-330));
+    }
+
+    public function test_cps_doc_type_label_unknown_returns_id_as_string(): void
+    {
+        $this->assertSame('99999', CpsDocType::label(99999));
     }
 }
