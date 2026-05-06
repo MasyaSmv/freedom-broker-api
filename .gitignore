@@ -60,6 +60,8 @@ composer.lock
 /public/build
 /storage/pail
 /build/coverage-html/
+/coverage.php
+/coverage.xml
 # Added by code-review-graph
 .code-review-graph/
 
