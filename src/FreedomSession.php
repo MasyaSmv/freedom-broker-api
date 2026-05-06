@@ -25,6 +25,7 @@ use MasyaSmv\FreedomBrokerApi\Core\Mapper\CpsFileMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\CurrencyMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\MarketMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\OrderMapper;
+use MasyaSmv\FreedomBrokerApi\Core\Mapper\OrderWriteMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\PortfolioMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\ReportMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\SecuritiesMapper;
@@ -42,6 +43,9 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\ClientInstructionHistoryRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CpsFilesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CrossRatesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\CurrentOrdersRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\DelTradeOrderRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\PutStopLossRequest;
+use MasyaSmv\FreedomBrokerApi\Core\Request\PutTradeOrderRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\DeletePriceAlertRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\DeleteWatchlistRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\DeleteWatchlistTickerRequest;
@@ -79,7 +83,10 @@ use MasyaSmv\FreedomBrokerApi\DTO\PortfolioAccountDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PortfolioPositionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PriceAlertDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\SecuritySessionDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\CancelledOrderDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\PlacedOrderDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\StopLossResultDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StockQuoteDTO;
@@ -96,6 +103,7 @@ final class FreedomSession
     private SecuritiesMapper $securitiesMapper;
     private MarketMapper $marketMapper;
     private OrderMapper $orderMapper;
+    private OrderWriteMapper $orderWriteMapper;
     private ClientInstructionMapper $instructionMapper;
     private PortfolioMapper $portfolioMapper;
     private CurrencyMapper $currencyMapper;
@@ -129,6 +137,7 @@ final class FreedomSession
         $this->securitiesMapper = new SecuritiesMapper();
         $this->marketMapper = new MarketMapper();
         $this->orderMapper = new OrderMapper();
+        $this->orderWriteMapper = new OrderWriteMapper();
         $this->instructionMapper = new ClientInstructionMapper();
         $this->portfolioMapper = new PortfolioMapper();
         $this->currencyMapper = new CurrencyMapper();
@@ -512,6 +521,83 @@ final class FreedomSession
     public function currentOrders(?int $activeOnly = null): Collection
     {
         return $this->orderMapper->mapCurrentOrdersResponse($this->currentOrdersResponse($activeOnly));
+    }
+
+    public function placeOrderResponse(
+        string $instrName,
+        int $actionId,
+        int $orderTypeId,
+        int $qty,
+        int $expirationId,
+        ?float $limitPrice = null,
+        ?float $stopPrice = null,
+        ?int $userOrderId = null,
+    ): ApiResponse {
+        if ($this->ordersApi === null) {
+            throw new \RuntimeException('Normalized orders API is not configured for this session.');
+        }
+
+        return $this->ordersApi->place(new PutTradeOrderRequest(
+            $instrName, $actionId, $orderTypeId, $qty, $expirationId,
+            $limitPrice, $stopPrice, $userOrderId,
+        ));
+    }
+
+    public function placeOrder(
+        string $instrName,
+        int $actionId,
+        int $orderTypeId,
+        int $qty,
+        int $expirationId,
+        ?float $limitPrice = null,
+        ?float $stopPrice = null,
+        ?int $userOrderId = null,
+    ): PlacedOrderDTO {
+        return $this->orderWriteMapper->mapPlaced(
+            $this->placeOrderResponse($instrName, $actionId, $orderTypeId, $qty, $expirationId, $limitPrice, $stopPrice, $userOrderId),
+        );
+    }
+
+    public function cancelOrderResponse(int $orderId): ApiResponse
+    {
+        if ($this->ordersApi === null) {
+            throw new \RuntimeException('Normalized orders API is not configured for this session.');
+        }
+
+        return $this->ordersApi->cancel(new DelTradeOrderRequest($orderId));
+    }
+
+    public function cancelOrder(int $orderId): CancelledOrderDTO
+    {
+        return $this->orderWriteMapper->mapCancelled($this->cancelOrderResponse($orderId));
+    }
+
+    public function setStopLossResponse(
+        string $instrName,
+        ?float $takeProfit = null,
+        ?float $stopLoss = null,
+        ?float $stopLossPercent = null,
+        ?float $stoplossTailingPercent = null,
+    ): ApiResponse {
+        if ($this->ordersApi === null) {
+            throw new \RuntimeException('Normalized orders API is not configured for this session.');
+        }
+
+        return $this->ordersApi->stopLoss(new PutStopLossRequest(
+            $instrName, $takeProfit, $stopLoss, $stopLossPercent, $stoplossTailingPercent,
+        ));
+    }
+
+    public function setStopLoss(
+        string $instrName,
+        ?float $takeProfit = null,
+        ?float $stopLoss = null,
+        ?float $stopLossPercent = null,
+        ?float $stoplossTailingPercent = null,
+    ): StopLossResultDTO {
+        return $this->orderWriteMapper->mapStopLoss(
+            $this->setStopLossResponse($instrName, $takeProfit, $stopLoss, $stopLossPercent, $stoplossTailingPercent),
+        );
     }
 
     public function cpsFilesResponse(?int $id = null, ?int $internalId = null): ApiResponse
