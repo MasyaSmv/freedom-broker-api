@@ -1,0 +1,195 @@
+<?php
+
+namespace MasyaSmv\FreedomBrokerApi\Reference;
+
+final class TransactionTypeCode
+{
+    const BANK                          = 'bank';
+    const SEPA_INSTANT                  = 'sepa_instant';
+    const SEPA                          = 'sepa';
+    const SWIFT                         = 'swift';
+    const GIFT_CERTIFICATE              = 'gift_certificate';
+    const BLOCK                         = 'block';
+    const BLOCK_COMMISSION              = 'block_commission';
+    const BLOCKCHAIN                    = 'blockchain';
+    const VARIATION_MARGIN              = 'variation_margin';
+    const REFUND                        = 'refund';
+    const COMMISSION_REFUND             = 'commission_refund';
+    const CASHOUT                       = 'cashout';
+    const CARD_PAYOUT                   = 'card_payout';
+    const SBP_WITHDRAWAL                = 'sbp_withdrawal';
+    const CRYPTO_WITHDRAWAL             = 'crypto_withdrawal';
+    const DIGITAL_ASSETS_WITHDRAWAL     = 'digital_assets_withdrawal';
+    const AGENT_REWARD_COMMISSIONS      = 'agent_reward_for_commissions';
+    const AGENT_REWARD_NET_DEPOSITS     = 'agent_reward_for_net_deposits';
+    const PAYMENTS_TO_CUSTOMER         = 'payments_to_customer';
+    const INITIAL_MARGIN                = 'initial_margin';
+    const ICC_COMMISSION                = 'icc_commission';
+    const DIVIDEND                      = 'dividend';
+    const DIVIDEND_REVERTED             = 'dividend_reverted';
+    const STOCK_DIVIDEND                = 'stock_dividend';
+    const STOCK_DIVIDEND_REVERTED       = 'stock_dividend_reverted';
+    const DEPOSIT_COMPENSATION          = 'deposit_compensation';
+    const FUND_PAYMENT                  = 'fund_payment';
+    const FUND_PAYMENT_REVERTED         = 'fund_payment_reverted';
+    const RIGHTS_DISTRIBUTION          = 'rights_distribution';
+    const RIGHTS_DISTRIBUTION_REVERTED = 'rights_distribution_reverted';
+    const INITIAL_MARGIN_AFTERHOURS    = 'initial_margin_afterhours';
+    const CARD                          = 'card';
+    const CARD_COMMISSION               = 'card_commission';
+    const COMMISSION                    = 'commission';
+    const COMMISSION_REVERTED           = 'commission_reverted';
+    const DIVIDEND_COMPENSATION         = 'dividend_compensation';
+    const DIVIDEND_COMPENSATION_REVERTED = 'dividend_compensation_reverted';
+    const STOCK_DIVIDEND_COMPENSATION   = 'stock_dividend_compensation';
+    const STOCK_DIVIDEND_COMPENSATION_REVERTED = 'stock_dividend_compensation_reverted';
+    const CORPORATE_ACTION_COMPENSATION = 'corporate_action_compensation';
+    const CORPORATE_ACTION_COMPENSATION_REVERTED = 'corporate_action_compensation_reverted';
+    const CONVERSION                    = 'conversion';
+    const CONVERSION_REVERTED           = 'conversion_reverted';
+    const CURRENCY_CONVERSION           = 'currency_conversion';
+    const MERGER                        = 'merger';
+    const MERGER_REVERTED               = 'merger_reverted';
+    const STORN_CORRECTION              = 'storn_correction';
+    const COUPON                        = 'coupon';
+    const COUPON_REVERTED               = 'coupon_reverted';
+    const CARD_CONVERSION_SETTLEMENT    = 'card_conversion_settlement';
+    const TAX                           = 'tax';
+    const TAX_REVERTED                  = 'tax_reverted';
+    const TAX_VAT                       = 'tax_vat';
+    const TAX_AGENT                     = 'tax_agent';
+    const TAX_VAT_REFUND                = 'tax_vat_refund';
+    const TAX_PROFIT                    = 'tax_profit';
+    const PENDING_CARD_AUTH             = 'pending_card_authorisation';
+    const CARD_CASH                     = 'card_cash';
+    const SCORES_REBATE                 = 'scores_rebate';
+    const DVP                           = 'dvp';
+    const AGENT_TRADE                   = 'agent_trade';
+    const OTC_TRADE                     = 'otc_trade';
+    const TRADE_CANCELLATION            = 'trade_cancellation';
+    const INTERBANK                     = 'interbank';
+    const INTERCOMPANY                  = 'intercompany';
+    const INTERNAL_HOLDING              = 'internal_holding';
+    const KASSA                         = 'kassa';
+    const MATURITY                      = 'maturity';
+    const MATURITY_REVERTED             = 'maturity_reverted';
+    const DEBT_COVERAGE                 = 'debt_coverage';
+    const BLIK                          = 'blik';
+    const DIGITAL_ASSETS                = 'digital_assets';
+    const SBP                           = 'sbp';
+    const OPTION_PREMIUM                = 'option_premium';
+    const PERCENTS                      = 'percents';
+    const UNBLOCK                       = 'unblock';
+    const UNBLOCK_COMMISSION            = 'unblock_commission';
+    const COMMISSION_REBATES            = 'commission_rebates';
+    const RECURRENT_SUBSCRIPTION        = 'recurrent_subscription';
+    const AGENT_FEE                     = 'agent_fee';
+    const AGENT_FEE_REVERTED            = 'agent_fee_reverted';
+    const SYSTEM                        = 'system';
+    const SPIN_OFF                      = 'spin_off';
+    const SPIN_OFF_REVERTED             = 'spin_off_reverted';
+    const SPLIT                         = 'split';
+    const SPLIT_REVERTED                = 'split_reverted';
+    const PARTIAL_MATURITY              = 'partial_maturity';
+    const PARTIAL_MATURITY_REVERTED     = 'partial_maturity_reverted';
+
+    /** @return array<string, string> code => description */
+    public static function all(): array
+    {
+        return [
+            self::BANK                               => 'Банковский перевод',
+            self::SEPA_INSTANT                       => 'SEPA Instant',
+            self::SEPA                               => 'SEPA-платеж',
+            self::SWIFT                              => 'SWIFT-платеж',
+            self::GIFT_CERTIFICATE                   => 'Активация подарочного сертификата',
+            self::BLOCK                              => 'Блокировка',
+            self::BLOCK_COMMISSION                   => 'Блокировка комиссии',
+            self::BLOCKCHAIN                         => 'Блокчейн',
+            self::VARIATION_MARGIN                   => 'Вариационная маржа',
+            self::REFUND                             => 'Возмещение клиенту',
+            self::COMMISSION_REFUND                  => 'Возмещение комиссий клиенту',
+            self::CASHOUT                            => 'Вывод денег',
+            self::CARD_PAYOUT                        => 'Вывод денег на карту',
+            self::SBP_WITHDRAWAL                     => 'Вывод денег через СБП',
+            self::CRYPTO_WITHDRAWAL                  => 'Вывод криптовалюты',
+            self::DIGITAL_ASSETS_WITHDRAWAL          => 'Вывод средств через Wallet',
+            self::AGENT_REWARD_COMMISSIONS           => 'Выплата партнеру за комиссии клиентов',
+            self::AGENT_REWARD_NET_DEPOSITS          => 'Выплата партнеру за привлеченные активы',
+            self::PAYMENTS_TO_CUSTOMER               => 'Выплаты клиенту',
+            self::INITIAL_MARGIN                     => 'Гарантийное обеспечение',
+            self::ICC_COMMISSION                     => 'Денежная транзакция',
+            self::DIVIDEND                           => 'Дивиденды',
+            self::DIVIDEND_REVERTED                  => 'Дивиденды (отмена)',
+            self::STOCK_DIVIDEND                     => 'Дивиденды бумагами',
+            self::STOCK_DIVIDEND_REVERTED            => 'Дивиденды бумагами (отмена)',
+            self::DEPOSIT_COMPENSATION               => 'Досрочное расторжение долгосрочного размещения',
+            self::FUND_PAYMENT                       => 'Доход по паям фонда',
+            self::FUND_PAYMENT_REVERTED              => 'Доход по паям фонда (отмена)',
+            self::RIGHTS_DISTRIBUTION                => 'Зачисление прав',
+            self::RIGHTS_DISTRIBUTION_REVERTED       => 'Зачисление прав (отмена)',
+            self::INITIAL_MARGIN_AFTERHOURS          => 'Изменение ГО после клиринга',
+            self::CARD                               => 'Карточный платеж',
+            self::CARD_COMMISSION                    => 'Комиссии по карте',
+            self::COMMISSION                         => 'Комиссия',
+            self::COMMISSION_REVERTED                => 'Комиссия (отмена)',
+            self::DIVIDEND_COMPENSATION              => 'Компенсация дивидендов',
+            self::DIVIDEND_COMPENSATION_REVERTED     => 'Компенсация дивидендов (отмена)',
+            self::STOCK_DIVIDEND_COMPENSATION        => 'Компенсация дивидендов бумагами',
+            self::STOCK_DIVIDEND_COMPENSATION_REVERTED => 'Компенсация дивидендов бумагами (отмена)',
+            self::CORPORATE_ACTION_COMPENSATION      => 'Компенсация по корпоративному действию',
+            self::CORPORATE_ACTION_COMPENSATION_REVERTED => 'Компенсация по корпоративному действию (отмена)',
+            self::CONVERSION                         => 'Конвертация',
+            self::CONVERSION_REVERTED                => 'Конвертация (отмена)',
+            self::CURRENCY_CONVERSION                => 'Конвертация валюты',
+            self::MERGER                             => 'Корпоративные действия',
+            self::MERGER_REVERTED                    => 'Корпоративные действия (отмена)',
+            self::STORN_CORRECTION                   => 'Корректировочная проводка',
+            self::COUPON                             => 'Купон',
+            self::COUPON_REVERTED                    => 'Купон (отмена)',
+            self::CARD_CONVERSION_SETTLEMENT         => 'Курсовые разницы при операциях по карте',
+            self::TAX                                => 'Налоги',
+            self::TAX_REVERTED                       => 'Налоги (отмена)',
+            self::TAX_VAT                            => 'Налоги VAT',
+            self::TAX_AGENT                          => 'Налоги агентское вознаграждение',
+            self::TAX_VAT_REFUND                     => 'Налоги возмещение VAT',
+            self::TAX_PROFIT                         => 'Налоги с дохода по сделкам',
+            self::PENDING_CARD_AUTH                  => 'Незавершенная авторизация платежа по карте',
+            self::CARD_CASH                          => 'Операции по карте',
+            self::SCORES_REBATE                      => 'Оплата комиссий баллами',
+            self::DVP                                => 'Оплата по DVP сделке',
+            self::AGENT_TRADE                        => 'Оплата по агентской сделке',
+            self::OTC_TRADE                          => 'Оплата по сделке',
+            self::TRADE_CANCELLATION                 => 'Отмена сделки',
+            self::INTERBANK                          => 'Перевод внутри банка',
+            self::INTERCOMPANY                       => 'Перевод внутри компании',
+            self::INTERNAL_HOLDING                   => 'Перевод внутри холдинга',
+            self::KASSA                              => 'Платеж через кассу',
+            self::MATURITY                           => 'Погашение',
+            self::MATURITY_REVERTED                  => 'Погашение (отмена)',
+            self::DEBT_COVERAGE                      => 'Погашение задолженности',
+            self::BLIK                               => 'Пополнение счета через BLIK',
+            self::DIGITAL_ASSETS                     => 'Пополнение счёта через Wallet',
+            self::SBP                                => 'Пополнение счёта через СБП',
+            self::OPTION_PREMIUM                     => 'Премия по опционам',
+            self::PERCENTS                           => 'Процент на остаток',
+            self::UNBLOCK                            => 'Разблокировка',
+            self::UNBLOCK_COMMISSION                 => 'Разблокировка комиссии',
+            self::COMMISSION_REBATES                 => 'Ребейт комиссии',
+            self::RECURRENT_SUBSCRIPTION             => 'Регулярное списание по карте',
+            self::AGENT_FEE                          => 'Сборы агента при выплате дивидендов',
+            self::AGENT_FEE_REVERTED                 => 'Сборы агента при выплате дивидендов (отмена)',
+            self::SYSTEM                             => 'Системная транзакция',
+            self::SPIN_OFF                           => 'Спин-офф',
+            self::SPIN_OFF_REVERTED                  => 'Спин-офф (отмена)',
+            self::SPLIT                              => 'Сплит',
+            self::SPLIT_REVERTED                     => 'Сплит (отмена)',
+            self::PARTIAL_MATURITY                   => 'Частичное погашение',
+            self::PARTIAL_MATURITY_REVERTED          => 'Частичное погашение (отмена)',
+        ];
+    }
+
+    public static function label(string $code): string
+    {
+        return self::all()[$code] ?? $code;
+    }
+}
