@@ -15,11 +15,6 @@ final class SecuritySessionMapper
     {
         $data = $response->payloadOrFail()->data();
 
-        // Response is a plain array (not wrapped in a key)
-        if (isset($data[0]) || $data === []) {
-            return $this->mapList($data);
-        }
-
         return $this->mapList($data);
     }
 

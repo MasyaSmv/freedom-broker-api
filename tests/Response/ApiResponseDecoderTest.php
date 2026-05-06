@@ -55,8 +55,9 @@ final class ApiResponseDecoderTest extends TestCase
         );
 
         $this->assertFalse($response->successful());
-        $this->assertSame('bad credentials', $response->error()?->message());
-        $this->assertSame('AUTH', $response->error()?->type());
-        $this->assertSame(422, $response->error()?->statusCode());
+        $this->assertNotNull($response->error());
+        $this->assertSame('bad credentials', $response->error()->message());
+        $this->assertSame('AUTH', $response->error()->type());
+        $this->assertSame(422, $response->error()->statusCode());
     }
 }

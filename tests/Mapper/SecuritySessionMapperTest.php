@@ -68,7 +68,7 @@ final class SecuritySessionMapperTest extends TestCase
         return new ApiResponse(
             new ApiMeta(200, [], 1),
             new ApiRequestContext('getSecuritySessions', 'https://api.test/v2/cmd/getSecuritySessions', 'POST', 2, []),
-            new ApiPayload($payload),
+            new ApiPayload($payload), // @phpstan-ignore-line
             null,
             json_encode($payload) ?: '',
         );

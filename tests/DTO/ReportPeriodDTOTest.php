@@ -36,7 +36,7 @@ final class ReportPeriodDTOTest extends TestCase
     {
         // DTO иммутабелен — попытка присвоить свойство вызывает Error
         $this->expectException(\Error::class);
-        // магический __set() бросит исключение
+        // @phpstan-ignore-next-line
         $this->dto->start = Carbon::now();
     }
 
