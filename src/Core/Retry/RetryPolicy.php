@@ -5,18 +5,19 @@ namespace MasyaSmv\FreedomBrokerApi\Core\Retry;
 /**
  * Политика retry-with-backoff для запросов, которые брокер может зарейтлимитить.
  *
- * Дефолт: 3 попытки, начальная пауза 5 секунд, экспоненциальный множитель 2.
- * Пауза перед n-й попыткой = initialSleepSeconds * (multiplier ^ (n - 1)).
+ * Дефолт: 4 попытки, начальная пауза 5s, множитель 2.5.
+ * Пауза перед attempt n (1-based) = initialSleepSeconds * multiplier^(n-2).
  *
- * 5s → 10s → 20s в сумме ≤ 35s — укладывается в типичный queue worker timeout
- * (60s), в отличие от 60s sleep, который гарантированно убивал бы воркер.
+ * Sleeps: 0 → 5s → 13s → 31s. Суммарное ожидание ≈ 49s — укладывается в
+ * 60s queue worker timeout, при этом максимальная одиночная пауза 31s
+ * перекрывает наблюдаемое rate-limit окно Freedom (~30s).
  */
 final class RetryPolicy
 {
     public function __construct(
-        public int $maxAttempts = 3,
+        public int $maxAttempts = 4,
         public int $initialSleepSeconds = 5,
-        public float $multiplier = 2.0,
+        public float $multiplier = 2.5,
     ) {
         if ($maxAttempts < 1) {
             throw new \InvalidArgumentException('maxAttempts must be >= 1');
