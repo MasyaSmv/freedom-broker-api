@@ -23,10 +23,17 @@ final class PortfolioMapper
      */
     public function mapPayload(array $payload): array
     {
+        // Реальный tradernet API возвращает `{result: {ps: {acc:[…], pos:[…]}}}`.
+        // Для обратной совместимости с тестовыми фикстурами также поддерживаем
+        // старый формат с `acc`/`pos` на верхнем уровне.
+        $source = (is_array($payload['result']['ps'] ?? null) ? $payload['result']['ps'] : null)
+            ?? (is_array($payload['ps'] ?? null) ? $payload['ps'] : null)
+            ?? $payload;
+
         $positions = collect();
         $accounts = collect();
 
-        $posRows = $payload['pos'] ?? [];
+        $posRows = $source['pos'] ?? [];
         if (is_array($posRows)) {
             foreach ($posRows as $row) {
                 if (is_array($row)) {
@@ -35,7 +42,7 @@ final class PortfolioMapper
             }
         }
 
-        $accRows = $payload['acc'] ?? [];
+        $accRows = $source['acc'] ?? [];
         if (is_array($accRows)) {
             foreach ($accRows as $row) {
                 if (is_array($row)) {

@@ -45,6 +45,10 @@ final class ReportParser
         );
 
         // 2. Операции
+        // TODO: добавить разбор `in_outs_securities.detailed` (visible-summary вид
+        // переводов бумаг из реального API — без id/trade_id). Сейчас оставляем
+        // только rich-internal `securities_in_outs` (есть в фикстурах, но
+        // пустой в боевом ответе для нашего пилотного юзера).
         $operations = collect()
             ->merge($r['trades']['detailed'] ?? [])
             ->merge($r['securities_in_outs'] ?? [])

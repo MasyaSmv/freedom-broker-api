@@ -31,8 +31,9 @@ final class PortfolioApiTest extends TestCase
         $this->assertSame('getPositionJson', $form['cmd']);
         $this->assertArrayNotHasKey('params', $form);
 
-        $this->assertCount(1, $response->payloadOrFail()->get('pos'));
-        $this->assertCount(1, $response->payloadOrFail()->get('acc'));
+        $payload = $response->payloadOrFail()->data();
+        $this->assertCount(1, $payload['result']['ps']['pos']);
+        $this->assertCount(1, $payload['result']['ps']['acc']);
     }
 
     private function client(MockHandler $mock): FreedomClient

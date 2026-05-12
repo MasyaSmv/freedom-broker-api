@@ -20,10 +20,10 @@ final class AccountMapper
         $source = $this->profileSource($payload);
 
         return new AccountProfileDTO(
-            clientCode: $this->stringValue($source, ['client_code', 'clientCode', 'account', 'account_id', 'accountId', 'login', 'code']),
+            clientCode: $this->stringValue($source, ['client_code', 'clientCode', 'brief_nm', 'account', 'account_id', 'accountId', 'login', 'code']),
             clientName: $this->stringValue($source, ['client_name', 'clientName', 'name', 'full_name', 'fullName']),
             accountType: $this->stringValue($source, ['account_type', 'accountType', 'type']),
-            baseCurrency: $this->stringValue($source, ['base_currency', 'baseCurrency', 'currency', 'curr']),
+            baseCurrency: $this->stringValue($source, ['base_currency', 'baseCurrency', 'main_curr', 'currency', 'curr']),
             tariff: $this->stringValue($source, ['tariff_name', 'tariffName', 'tariff']),
             raw: $payload,
         );
@@ -35,7 +35,9 @@ final class AccountMapper
      */
     private function profileSource(array $payload): array
     {
-        foreach (['plainAccountInfoData', 'account', 'profile', 'user'] as $key) {
+        // OPQ — реальный envelope из getOPQ (validateCredentials);
+        // остальные ключи — для других source-форматов и тестовых фикстур.
+        foreach (['plainAccountInfoData', 'OPQ', 'account', 'profile', 'user'] as $key) {
             if (isset($payload[$key]) && is_array($payload[$key])) {
                 return $payload[$key];
             }

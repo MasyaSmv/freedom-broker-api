@@ -31,6 +31,20 @@ final class AccountMapperTest extends TestCase
         $this->assertArrayHasKey('plainAccountInfoData', $profile->raw);
     }
 
+    public function test_it_unwraps_opq_envelope_from_real_get_opq_response(): void
+    {
+        $profile = (new AccountMapper())->mapResponse($this->response([
+            'OPQ' => [
+                'brief_nm'  => '1761178',
+                'main_curr' => 'USD',
+                'reception' => 68,
+            ],
+        ]));
+
+        $this->assertSame('1761178', $profile->clientCode);
+        $this->assertSame('USD', $profile->baseCurrency);
+    }
+
     public function test_it_keeps_raw_payload_when_profile_shape_is_sparse(): void
     {
         $profile = (new AccountMapper())->mapResponse($this->response([
