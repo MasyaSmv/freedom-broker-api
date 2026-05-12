@@ -9,20 +9,29 @@ use MasyaSmv\FreedomBrokerApi\Config\FreedomConfig;
 use MasyaSmv\FreedomBrokerApi\Contracts\FreedomManagerInterface;
 use MasyaSmv\FreedomBrokerApi\Core\Factory\FreedomClientFactory;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
+use MasyaSmv\FreedomBrokerApi\Core\Retry\RetryPolicy;
 use MasyaSmv\FreedomBrokerApi\Credentials\CredentialsProviderInterface;
 use MasyaSmv\FreedomBrokerApi\Credentials\FreedomCredentials;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 use MasyaSmv\FreedomBrokerApi\FreedomSession;
+use Psr\Log\LoggerInterface;
 
 class FreedomManager implements FreedomManagerInterface
 {
     private FreedomClientFactory $clients;
+    private ?LoggerInterface $logger;
+    private ?RetryPolicy $retryPolicy;
 
-    public function __construct(?FreedomClientFactory $clients = null)
-    {
+    public function __construct(
+        ?FreedomClientFactory $clients = null,
+        ?LoggerInterface $logger = null,
+        ?RetryPolicy $retryPolicy = null
+    ) {
         $this->clients = $clients ?? new FreedomClientFactory($this->configFromLaravel());
+        $this->logger = $logger;
+        $this->retryPolicy = $retryPolicy;
     }
 
     public function connect(string $publicKey, string $privateKey, ?string $sid = null, ?int $version = null): FreedomSession
@@ -37,6 +46,8 @@ class FreedomManager implements FreedomManagerInterface
         return new FreedomSession(
             $this->clients->make($credentials, $version),
             apiClient: $this->clients->makeApiClient($credentials, $version),
+            logger: $this->logger,
+            retryPolicy: $this->retryPolicy,
         );
     }
 

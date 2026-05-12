@@ -11,9 +11,11 @@ use MasyaSmv\FreedomBrokerApi\Core\Factory\FreedomClientFactory;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\SignerFactory;
 use MasyaSmv\FreedomBrokerApi\Core\Parser\ReportParser;
+use MasyaSmv\FreedomBrokerApi\Core\Retry\RetryPolicy;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\Credentials\FreedomCredentials;
 use MasyaSmv\FreedomBrokerApi\Laravel\FreedomManager;
+use Psr\Log\LoggerInterface;
 
 class FreedomBrokerServiceProvider extends ServiceProvider
 {
@@ -65,7 +67,23 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton('freedom', function ($app) {
-            return new FreedomManager($app->make(FreedomClientFactory::class));
+            $logger = null;
+            $channel = (string)config('freedom.log_channel', '');
+            if ($channel !== '' && function_exists('logger')) {
+                $logger = logger()->channel($channel);
+            } elseif ($app->bound(LoggerInterface::class)) {
+                $logger = $app->make(LoggerInterface::class);
+            }
+
+            $retry = $app->bound(RetryPolicy::class)
+                ? $app->make(RetryPolicy::class)
+                : new RetryPolicy(
+                    maxAttempts: (int)config('freedom.retry.max_attempts', 3),
+                    initialSleepSeconds: (int)config('freedom.retry.initial_sleep_seconds', 5),
+                    multiplier: (float)config('freedom.retry.multiplier', 2.0),
+                );
+
+            return new FreedomManager($app->make(FreedomClientFactory::class), $logger, $retry);
         });
 
         $this->app->alias('freedom', FreedomManager::class);

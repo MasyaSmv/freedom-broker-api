@@ -2,9 +2,14 @@
 
 namespace MasyaSmv\FreedomBrokerApi;
 
+use Carbon\CarbonImmutable;
+use DateTimeImmutable;
 use DateTimeInterface;
+use Generator;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use MasyaSmv\FreedomBrokerApi\Core\Api\AccountApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\CurrencyApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\InstructionsApi;
@@ -17,6 +22,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Api\AlertsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\SecuritySessionsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Api\WatchlistsApi;
 use MasyaSmv\FreedomBrokerApi\Core\Client\FreedomClient;
+use MasyaSmv\FreedomBrokerApi\Core\Exception\ApiRequestFailedException;
+use MasyaSmv\FreedomBrokerApi\Core\Exception\RateLimitedException;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\AccountMapper;
 use MasyaSmv\FreedomBrokerApi\Core\Mapper\CashFlowMapper;
@@ -68,6 +75,8 @@ use MasyaSmv\FreedomBrokerApi\Core\Request\TradesRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\UpdateWatchlistRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Request\WatchlistsRequest;
 use MasyaSmv\FreedomBrokerApi\Core\Response\ApiResponse;
+use MasyaSmv\FreedomBrokerApi\Core\Retry\RateLimitDetector;
+use MasyaSmv\FreedomBrokerApi\Core\Retry\RetryPolicy;
 use MasyaSmv\FreedomBrokerApi\Core\Service\ReportService;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountPlainDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\AccountProfileDTO;
@@ -85,6 +94,7 @@ use MasyaSmv\FreedomBrokerApi\DTO\PriceAlertDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\SecuritySessionDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\CancelledOrderDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\PlacedOrderDTO;
+use MasyaSmv\FreedomBrokerApi\DTO\ReportChunkDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportPeriodDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\StopLossResultDTO;
 use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
@@ -123,12 +133,20 @@ final class FreedomSession
     private ?WatchlistsApi $watchlistsApi;
     private ?AlertsApi $alertsApi;
     private ?SecuritySessionsApi $securitySessionsApi;
+    private LoggerInterface $logger;
+    private RetryPolicy $retryPolicy;
+    private RateLimitDetector $rateLimitDetector;
 
     public function __construct(
         FreedomHttpClient $client,
         ?ReportParser $reportParser = null,
-        ?FreedomClient $apiClient = null
+        ?FreedomClient $apiClient = null,
+        ?LoggerInterface $logger = null,
+        ?RetryPolicy $retryPolicy = null
     ) {
+        $this->logger = $logger ?? new NullLogger();
+        $this->retryPolicy = $retryPolicy ?? RetryPolicy::default();
+        $this->rateLimitDetector = new RateLimitDetector();
         $reportParser = $reportParser ?? new ReportParser();
 
         $this->reports = new ReportService($client, $reportParser);
@@ -813,11 +831,146 @@ final class FreedomSession
      */
     public function loadBrokerReport(string $from, string $to): array
     {
-        if ($this->reportsApi !== null) {
-            return $this->reportMapper->mapResponse($this->loadBrokerReportResponse($from, $to));
+        return $this->executeWithRetry(
+            'loadBrokerReport',
+            ['from' => $from, 'to' => $to],
+            function () use ($from, $to): array {
+                if ($this->reportsApi !== null) {
+                    return $this->reportMapper->mapResponse($this->loadBrokerReportResponse($from, $to));
+                }
+
+                return $this->reports->load($from, $to);
+            },
+        );
+    }
+
+    /**
+     * Стримит broker report за период [$from, $to] чанками по $windowMonths.
+     * Каждый чанк — отдельный вызов loadBrokerReport(), завёрнутый в
+     * {@see ReportChunkDTO} с фактическими границами окна (coversFrom/coversTo)
+     * для checkpoint'ов потребителя.
+     *
+     * Между чанками (начиная со 2-го) применяется $throttleMs пауза, чтобы
+     * не нарваться на rate-limit при длинных initial sync'ах. Retry от rate-limit
+     * обеспечивается единой политикой из {@see RetryPolicy} — см. конструктор.
+     *
+     * @return Generator<int, ReportChunkDTO>
+     * @throws GuzzleException
+     */
+    public function streamBrokerReport(
+        string $from,
+        string $to,
+        int $windowMonths = 12,
+        int $throttleMs = 0
+    ): Generator {
+        if ($windowMonths < 1) {
+            throw new \InvalidArgumentException('windowMonths must be >= 1');
+        }
+        if ($throttleMs < 0) {
+            throw new \InvalidArgumentException('throttleMs must be >= 0');
         }
 
-        return $this->reports->load($from, $to);
+        $windowStart = CarbonImmutable::parse($from)->startOfDay();
+        $finalEnd = CarbonImmutable::parse($to)->startOfDay();
+        $sequence = 0;
+
+        while ($windowStart->lte($finalEnd)) {
+            if ($sequence > 0 && $throttleMs > 0) {
+                usleep($throttleMs * 1000);
+            }
+
+            $windowEnd = $windowStart->addMonthsNoOverflow($windowMonths)->subDay();
+            if ($windowEnd->gt($finalEnd)) {
+                $windowEnd = $finalEnd;
+            }
+
+            $chunkFrom = $windowStart->format('Y-m-d');
+            $chunkTo = $windowEnd->format('Y-m-d');
+            $t0 = microtime(true);
+
+            $payload = $this->loadBrokerReport($chunkFrom, $chunkTo);
+
+            $this->logger->info('freedom.streamBrokerReport chunk loaded', [
+                'sequence' => $sequence,
+                'from' => $chunkFrom,
+                'to' => $chunkTo,
+                'operations' => $payload['operations']->count(),
+                'transfers' => $payload['transfers']->count(),
+                'ms' => (int)round((microtime(true) - $t0) * 1000),
+            ]);
+
+            yield new ReportChunkDTO(
+                sequence: $sequence,
+                coversFrom: new DateTimeImmutable($chunkFrom),
+                coversTo: new DateTimeImmutable($chunkTo),
+                plain: $payload['plain'],
+                operations: $payload['operations'],
+                transfers: $payload['transfers'],
+                commissions: $payload['commissions'],
+                payments: $payload['payments'],
+                positions: $payload['positions'],
+                balances: $payload['balances'],
+                summary: $payload['summary'],
+                period: $payload['period'],
+            );
+
+            $sequence++;
+            $windowStart = $windowEnd->addDay();
+        }
+    }
+
+    /**
+     * Выполняет callable с retry-with-backoff на rate-limit. Любые другие
+     * ошибки (включая GuzzleException) пробрасываются как есть с первой
+     * попытки — retry'им только rate-limit, чтобы не маскировать настоящие
+     * проблемы транспорта или авторизации.
+     *
+     * @template TResult
+     * @param callable():TResult $operation
+     * @return TResult
+     */
+    private function executeWithRetry(string $opName, array $context, callable $operation)
+    {
+        $attempt = 1;
+        $lastRateLimitError = null;
+
+        while (true) {
+            $sleep = $this->retryPolicy->sleepBefore($attempt);
+            if ($sleep > 0) {
+                $this->logger->warning('freedom.retry sleeping before attempt', [
+                    'op' => $opName,
+                    'attempt' => $attempt,
+                    'sleep_seconds' => $sleep,
+                ] + $context);
+                sleep($sleep);
+            }
+
+            try {
+                return $operation();
+            } catch (ApiRequestFailedException $e) {
+                if (!$this->rateLimitDetector->isRateLimited($e->response())) {
+                    throw $e;
+                }
+
+                $lastRateLimitError = $e;
+
+                if ($attempt >= $this->retryPolicy->maxAttempts) {
+                    $this->logger->error('freedom.retry exhausted', [
+                        'op' => $opName,
+                        'attempts' => $attempt,
+                    ] + $context);
+                    throw new RateLimitedException($e->response(), null, $e);
+                }
+
+                $this->logger->warning('freedom.retry rate-limited', [
+                    'op' => $opName,
+                    'attempt' => $attempt,
+                    'message' => $e->getMessage(),
+                ] + $context);
+
+                $attempt++;
+            }
+        }
     }
 
     // --- Price Alerts ---
