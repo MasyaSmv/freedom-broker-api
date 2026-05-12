@@ -61,6 +61,7 @@ class FreedomManager implements FreedomManagerInterface
      * @return array{
      *     plain:AccountPlainDTO,
      *     operations:Collection,
+     *     transfers:Collection,
      *     commissions:Collection,
      *     payments:Collection,
      *     positions:Collection,

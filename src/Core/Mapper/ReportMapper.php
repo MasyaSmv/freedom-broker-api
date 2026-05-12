@@ -19,6 +19,7 @@ final class ReportMapper
      * @return array{
      *     plain:AccountPlainDTO,
      *     operations:Collection,
+     *     transfers:Collection,
      *     commissions:Collection,
      *     payments:Collection,
      *     positions:Collection,
@@ -38,6 +39,7 @@ final class ReportMapper
      * @return array{
      *     plain:AccountPlainDTO,
      *     operations:Collection,
+     *     transfers:Collection,
      *     commissions:Collection,
      *     payments:Collection,
      *     positions:Collection,

@@ -11,7 +11,8 @@ use MasyaSmv\FreedomBrokerApi\DTO\{AccountPlainDTO,
     PaymentDTO,
     PositionDTO,
     ReportPeriodDTO,
-    ReportSummaryDTO};
+    ReportSummaryDTO,
+    TransferDTO};
 
 /**
  * Разбивает сырой отчёт Freedom на типизированные DTO-коллекции.
@@ -21,6 +22,7 @@ final class ReportParser
     /** @return array{
      *     plain:AccountPlainDTO,
      *     operations:Collection,
+     *     transfers:Collection,
      *     commissions:Collection,
      *     payments:Collection,
      *     positions:Collection,
@@ -44,11 +46,9 @@ final class ReportParser
             activationDate: $r['plainAccountInfoData']['activation_date'] ?? '',
         );
 
-        // 2. Операции
-        // TODO: добавить разбор `in_outs_securities.detailed` (visible-summary вид
-        // переводов бумаг из реального API — без id/trade_id). Сейчас оставляем
-        // только rich-internal `securities_in_outs` (есть в фикстурах, но
-        // пустой в боевом ответе для нашего пилотного юзера).
+        // 2. Операции (rich-internal: trades + securities_in_outs).
+        // Visible-summary переводы бумаг (in_outs_securities.detailed) идут
+        // отдельной коллекцией `transfers` — у них нет trade_id, своя форма.
         $operations = collect()
             ->merge($r['trades']['detailed'] ?? [])
             ->merge($r['securities_in_outs'] ?? [])
@@ -76,6 +76,36 @@ final class ReportParser
                 currency: $raw['curr_c'] ?? $raw['currency'] ?? $raw['balance_currency'] ?? null,
                 raw: $raw,
             ));
+
+        // 2b. Переводы бумаг (visible-summary). Композитный id со separator'ом
+        // гарантирует идемпотентность повторного парсинга — sha1 над набором
+        // стабильных полей разделённых `|`, чтобы исключить склейку соседних
+        // значений (B+UYx vs BUY+x).
+        $transfers = collect($r['in_outs_securities']['detailed'] ?? [])
+            ->map(static function (array $raw): TransferDTO {
+                $date = (string)($raw['date'] ?? $raw['datetime'] ?? '');
+                $ticker = (string)($raw['ticker'] ?? $raw['instr_nm'] ?? '');
+                $isin = (string)($raw['isin'] ?? '');
+                $quantity = (float)($raw['quantity'] ?? $raw['q'] ?? 0);
+                $type = (string)($raw['type'] ?? $raw['operation'] ?? '');
+                $comment = (string)($raw['comment'] ?? '');
+                $account = isset($raw['account']) ? (string)$raw['account'] : null;
+
+                $idSource = implode('|', [$date, $ticker, (string)$quantity, $isin, $type, $comment]);
+                $id = 'inout_' . sha1($idSource);
+
+                return new TransferDTO(
+                    id: $id,
+                    type: $type,
+                    dateTime: $date,
+                    ticker: $ticker,
+                    isin: $isin,
+                    quantity: $quantity,
+                    account: $account,
+                    comment: $comment !== '' ? $comment : null,
+                    raw: $raw,
+                );
+            });
 
         // 3. Комиссии
         $commissions = collect($r['commissions']['detailed'] ?? [])
@@ -134,7 +164,7 @@ final class ReportParser
             self::safeParse($r['date_end'] ?? null),
         );
 
-        return compact('plain', 'operations', 'commissions', 'payments', 'positions', 'balances', 'summary', 'period');
+        return compact('plain', 'operations', 'transfers', 'commissions', 'payments', 'positions', 'balances', 'summary', 'period');
     }
 
     private static function safeParse(?string $raw): Carbon
