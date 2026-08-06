@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use MasyaSmv\FreedomBrokerApi\Core\Exception\InvalidResponseException;
 use MasyaSmv\FreedomBrokerApi\Core\Http\FreedomHttpClient;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V1Signer;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\V2Signer;
@@ -14,36 +15,17 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 
-/**
- * ⚠️  Реальный HTTP-запрос к «https://tradernet.ru/api».
- * Запускается только если выставлена переменная окружения FREEDOM_LIVE_TEST=1
- */
 final class FreedomHttpClientTest extends TestCase
 {
-    private const PUBLIC_KEY  = '3771cc1f44163f5399127f563b8342ce';
-    private const PRIVATE_KEY = '';   // пустой
-
-    /**
-     * @throws GuzzleException
-     */
     public function test_it_gets_non_empty_response(): void
     {
-        if (!\getenv('FREEDOM_LIVE_TEST')) {
-            $this->markTestSkipped('Live test disabled – set FREEDOM_LIVE_TEST=1');
-        }
-
-        $client = new FreedomHttpClient(
-            http    : new Client(['timeout' => 10]),
-            signer  : new V1Signer(self::PRIVATE_KEY),
-            apiKey  : self::PUBLIC_KEY,
-            version : FreedomHttpClient::V1,
+        $client = $this->clientWithResponse(
+            new Response(200, ['Content-Type' => 'application/json'], '{"pong":true}'),
         );
 
-        $resp = $client->request('ping', null, true); // array
+        $response = $client->request('ping', null, true);
 
-        // Достаточно убедиться, что пришёл непустой массив
-        $this->assertIsArray($resp);
-        $this->assertNotEmpty($resp);
+        $this->assertSame(['pong' => true], $response);
     }
 
     /** проверяем setApiUrl() и withSid() одновременно
@@ -71,7 +53,7 @@ final class FreedomHttpClientTest extends TestCase
         $this->assertStringContainsString('"SID":"SID123"', urldecode($body));
     }
 
-    public function test_empty_response_throws_runtime_exception(): void
+    public function test_empty_response_throws_invalid_response_exception(): void
     {
         $mock = new MockHandler([new Response(200, [], '')]); // пустое тело
         $cli  = new FreedomHttpClient(
@@ -82,8 +64,51 @@ final class FreedomHttpClientTest extends TestCase
             apiUrl:'https://x/api'
         );
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidResponseException::class);
+        $this->expectExceptionMessage('Freedom API returned an empty response for command [ping], HTTP 200.');
         $cli->request('ping');
+    }
+
+    public function test_invalid_json_throws_invalid_response_exception_with_http_context(): void
+    {
+        $client = $this->clientWithResponse(
+            new Response(200, ['Content-Type' => 'text/html'], '<html>Bad gateway</html>'),
+        );
+
+        $this->expectException(InvalidResponseException::class);
+        $this->expectExceptionMessage(
+            'Freedom API returned invalid JSON for command [getBrokerReport], HTTP 200, Content-Type [text/html]: Syntax error.',
+        );
+
+        $client->request('getBrokerReport', asArray: true);
+    }
+
+    public function test_json_null_throws_invalid_response_exception(): void
+    {
+        $client = $this->clientWithResponse(
+            new Response(200, ['Content-Type' => 'application/json'], 'null'),
+        );
+
+        $this->expectException(InvalidResponseException::class);
+        $this->expectExceptionMessage(
+            'Freedom API returned unexpected JSON type for command [getBrokerReport], HTTP 200, Content-Type [application/json].',
+        );
+
+        $client->request('getBrokerReport', asArray: true);
+    }
+
+    public function test_non_successful_http_status_throws_invalid_response_exception(): void
+    {
+        $client = $this->clientWithResponse(
+            new Response(502, ['Content-Type' => 'text/html'], '<html>Bad gateway</html>'),
+        );
+
+        $this->expectException(InvalidResponseException::class);
+        $this->expectExceptionMessage(
+            'Freedom API request failed for command [getBrokerReport], HTTP 502, Content-Type [text/html].',
+        );
+
+        $client->request('getBrokerReport', asArray: true);
     }
 
     /**
@@ -166,5 +191,18 @@ final class FreedomHttpClientTest extends TestCase
 
         // URL V2 (строка 94)
         $this->assertSame('https://api.test/v2/cmd/auth-login', (string)$req->getUri());
+    }
+
+    private function clientWithResponse(Response $response): FreedomHttpClient
+    {
+        $mock = new MockHandler([$response]);
+
+        return new FreedomHttpClient(
+            new Client(['handler' => HandlerStack::create($mock)]),
+            new V2Signer('private-key'),
+            apiKey: 'public-key',
+            version: FreedomHttpClient::V2,
+            apiUrl: 'https://api.test',
+        );
     }
 }
