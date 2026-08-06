@@ -6,8 +6,9 @@ namespace MasyaSmv\FreedomBrokerApi\Core\Http;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
+use JsonException;
+use MasyaSmv\FreedomBrokerApi\Core\Exception\InvalidResponseException;
 use MasyaSmv\FreedomBrokerApi\Core\Http\Signer\SignerInterface;
-use RuntimeException;
 
 /**
  * Полноценный клиент Freedom Broker API
@@ -105,12 +106,51 @@ class FreedomHttpClient
             RequestOptions::VERIFY => false,
         ]);
 
-        $json = (string)$response->getBody();
+        $json = (string) $response->getBody();
+        $statusCode = $response->getStatusCode();
+        $contentType = $response->getHeaderLine('Content-Type');
+        $responseContext = sprintf(
+            'command [%s], HTTP %d%s',
+            $method,
+            $statusCode,
+            $contentType !== '' ? sprintf(', Content-Type [%s]', $contentType) : '',
+        );
+
         if ($json === '') {
-            throw new RuntimeException('Freedom API: empty response');
+            throw new InvalidResponseException(
+                sprintf('Freedom API returned an empty response for %s.', $responseContext),
+            );
         }
 
-        return json_decode($json, $asArray);
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new InvalidResponseException(
+                sprintf('Freedom API request failed for %s.', $responseContext),
+                $json,
+            );
+        }
+
+        try {
+            $decoded = json_decode($json, $asArray, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new InvalidResponseException(
+                sprintf(
+                    'Freedom API returned invalid JSON for %s: %s.',
+                    $responseContext,
+                    $exception->getMessage(),
+                ),
+                $json,
+                $exception,
+            );
+        }
+
+        if (($asArray && !is_array($decoded)) || (!$asArray && !is_object($decoded))) {
+            throw new InvalidResponseException(
+                sprintf('Freedom API returned unexpected JSON type for %s.', $responseContext),
+                $json,
+            );
+        }
+
+        return $decoded;
     }
 
     /**
