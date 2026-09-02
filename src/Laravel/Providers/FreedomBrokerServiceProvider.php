@@ -20,7 +20,7 @@ class FreedomBrokerServiceProvider extends ServiceProvider
         // 1) Привязываем GuzzleHttp\ClientInterface → GuzzleHttp\Client
         $this->app->bind(ClientInterface::class, function () {
             return new Client([
-                'timeout' => config('freedom.timeout', 15),
+                'timeout' => config('freedom.timeout', 5),
                 'verify' => config('freedom.verify_ssl', false),
             ]);
         });

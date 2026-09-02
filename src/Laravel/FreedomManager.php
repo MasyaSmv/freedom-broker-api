@@ -56,7 +56,7 @@ class FreedomManager implements FreedomManagerInterface
 
         // 3. Инстанцируем HTTP-клиент и signer
         $http = new FreedomHttpClient(
-            http: new GuzzleClient(['timeout' => 15]),
+            http: new GuzzleClient(['timeout' => 5]),
             signer: $version === FreedomHttpClient::V2
                 ? new V2Signer($privateKey)
                 : new V1Signer($privateKey),

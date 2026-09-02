@@ -12,6 +12,8 @@ use MasyaSmv\FreedomBrokerApi\DTO\ReportSummaryDTO;
 
 final class ReportService
 {
+    private const MAX_REQUEST_ATTEMPTS = 3;
+
     private FreedomHttpClient $http;
     private ReportParser $parser;
 
@@ -38,16 +40,26 @@ final class ReportService
      */
     public function load(string $from, string $to): array
     {
-        $response = $this->http->request(
-            'getBrokerReport',
-            [
-                'date_start' => $from,
-                'date_end' => $to,
-                'time_period' => '23:59:59',
-                'format' => 'json',
-            ],
-            asArray: true,
-        );
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                $response = $this->http->request(
+                    'getBrokerReport',
+                    [
+                        'date_start' => $from,
+                        'date_end' => $to,
+                        'time_period' => '23:59:59',
+                        'format' => 'json',
+                    ],
+                    asArray: true,
+                );
+
+                break;
+            } catch (GuzzleException $exception) {
+                if ($attempt >= self::MAX_REQUEST_ATTEMPTS) {
+                    throw $exception;
+                }
+            }
+        }
 
         return $this->parser->parse($response);
     }
